@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"io/ioutil"
 	"mydatabase"
 	"net/http"
 	"render"
@@ -28,37 +29,34 @@ func listItems(w http.ResponseWriter, r *http.Request) {
 
 func item(w http.ResponseWriter, r *http.Request) {
 
-	var buffer []byte = new(byte[])
-
-	_, error := r.Body.Read(buffer)
-	if error != nil {
+	buffer, err := ioutil.ReadAll(r.Body)
+	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(w, error.Error())
+		fmt.Fprintf(w, err.Error())
 		return
 	}
 
-	var ent mydatabase.Entity
+	var ent *mydatabase.Entity = new(mydatabase.Entity)
 
-	error2 := json.NewDecoder(bytes.NewReader(buffer)).Decode(ent)
+	err2 := json.NewDecoder(bytes.NewReader(buffer)).Decode(ent)
 
-	if error2 != nil {
+	if err2 != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprintf(w, error.Error())
+		fmt.Fprintf(w, err2.Error())
 		return
 	}
-	defer error2
 
 	//Add new item
 	if r.Method == "POST" {
-		newid := mydatabase.AddNew(ent)
+		newid := mydatabase.AddNew(*ent)
 		w.WriteHeader(http.StatusCreated)
 		fmt.Fprintf(w, "{\"id\":\"%d\"}", newid)
 		return
 	} else if r.Method == "PUT" { //Edit existing
-		error3 := mydatabase.Update(ent)
-		if error3 != nil {
+		err3 := mydatabase.Update(*ent)
+		if err3 != nil {
 			w.WriteHeader(http.StatusConflict)
-			fmt.Fprintf(w, error.Error())
+			fmt.Fprintf(w, err3.Error())
 			return
 		}
 	} else if r.Method == "GET" {
