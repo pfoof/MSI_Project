@@ -6,10 +6,10 @@ import (
 	"net/http"
 )
 
-func RenderIndex(e mydatabase.Entity, wr http.ResponseWriter, r *http.Request) {
+func RenderIndex(e []mydatabase.Entity, wr http.ResponseWriter, r *http.Request) {
 	t, _ := template.ParseFiles("templates/index.html")
 	page := struct {
-		entities mydatabase.Entity
+		Entities []mydatabase.Entity
 	}{
 		e,
 	}

@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"mydatabase"
 	"net/http"
+	"render"
 )
 
 func listItems(w http.ResponseWriter, r *http.Request) {
@@ -15,10 +16,7 @@ func listItems(w http.ResponseWriter, r *http.Request) {
 		item(w, r)
 		return
 	} else if r.Method == "GET" {
-		fmt.Fprintf(w, "\tID\tManufacturer\tName")
-		for i, e := range mydatabase.Entities {
-			fmt.Fprintf(w, "%d:\t%d\t%s\t%s", i, e.ID, e.Prod, e.Name)
-		}
+		render.RenderIndex(mydatabase.Entities, w, r)
 	} else if r.Method == "HEAD" {
 		w.Header().Add("Content-Length", "1024")
 		w.Header().Add("Content-Type", "text/plain")
@@ -30,7 +28,7 @@ func listItems(w http.ResponseWriter, r *http.Request) {
 
 func item(w http.ResponseWriter, r *http.Request) {
 
-	var buffer []byte
+	var buffer []byte = new(byte[])
 
 	_, error := r.Body.Read(buffer)
 	if error != nil {
@@ -48,6 +46,7 @@ func item(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, error.Error())
 		return
 	}
+	defer error2
 
 	//Add new item
 	if r.Method == "POST" {

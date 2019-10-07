@@ -1,4 +1,47 @@
 <!DOCTYPE html>
 <HTML>
-    
+    <HEAD>
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+        <script>
+            $(function() {
+                $("#btnInsert").on("click", function(){
+                    var o = {
+                        "prod": $("#prod").val(),
+                        "name": $("#name").val()
+                    }; 
+                    $.ajax("/", {
+                        'data': JSON.stringify(o),
+                        'type': 'POST',
+                        'processData': false,
+                        'contentType': 'application/json'
+                    });
+                });
+            });
+            
+            
+        </script>
+    </HEAD>
+    <BODY>
+
+        {&quot;prod&quot;: &quot;<INPUT TYPE="text" ID="prod">&quot;,<BR>
+        &quot;name&quot;: &quot;<INPUT TYPE="text" ID="name">&quot;}<BR>
+        <BUTTON ID="btnInsert" TYPE="button">Insert</BUTTON>
+
+        <TABLE>
+            <TR>
+                <TH></TH>
+                <TH>ID</TH>
+                <TH>Manufacturer</TH>
+                <TH>Name</TH>
+            </TR>
+            {{range $i, $a := .Entities}}
+                <TR>
+                    <TD>{{$i}}</TD>
+                    <TD>{{$a.ID}}</TD>
+                    <TD>{{$a.Prod}}</TD>
+                    <TD>{{$a.Name}}</TD>
+                </TR>
+            {{end}}
+        </TABLE>
+    </BODY>
 </HTML>
