@@ -1,0 +1,5 @@
+bin/
+pkg/
+server/bin
+server/pkg
+server/src/github.com

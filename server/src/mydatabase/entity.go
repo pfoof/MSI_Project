@@ -1,6 +1,4 @@
-package main
-
-import "encoding/json"
+package mydatabase
 
 type Entity struct {
 	ID   uint   `json:"id"`

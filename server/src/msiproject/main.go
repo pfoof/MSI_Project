@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"mydatabase"
 	"net/http"
 )
 
@@ -15,7 +16,7 @@ func listItems(w http.ResponseWriter, r *http.Request) {
 		return
 	} else if r.Method == "GET" {
 		fmt.Fprintf(w, "\tID\tManufacturer\tName")
-		for i, e := range Entities {
+		for i, e := range mydatabase.Entities {
 			fmt.Fprintf(w, "%d:\t%d\t%s\t%s", i, e.ID, e.Prod, e.Name)
 		}
 	} else if r.Method == "HEAD" {
@@ -38,7 +39,7 @@ func item(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var ent Entity
+	var ent mydatabase.Entity
 
 	error2 := json.NewDecoder(bytes.NewReader(buffer)).Decode(ent)
 
@@ -48,11 +49,14 @@ func item(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Edit an existing item
+	//Add new item
 	if r.Method == "POST" {
-		Update(ent)
-	} else if r.Method == "PUT" { //Add a new item
-		error3 := Update(ent)
+		newid := mydatabase.AddNew(ent)
+		w.WriteHeader(http.StatusCreated)
+		fmt.Fprintf(w, "{\"id\":\"%d\"}", newid)
+		return
+	} else if r.Method == "PUT" { //Edit existing
+		error3 := mydatabase.Update(ent)
 		if error3 != nil {
 			w.WriteHeader(http.StatusConflict)
 			fmt.Fprintf(w, error.Error())
@@ -69,4 +73,6 @@ func main() {
 
 	rtr.HandleFunc("/", listItems)
 	rtr.HandleFunc("/{[0-9]+}", item)
+
+	http.ListenAndServe(":8000", nil)
 }

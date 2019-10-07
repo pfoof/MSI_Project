@@ -1,4 +1,4 @@
-package main
+package mydatabase
 
 import (
 	"fmt"
@@ -10,10 +10,11 @@ var NextId uint = 1
 /*
 	@e - entity to be added
 */
-func AddNew(e Entity) {
+func AddNew(e Entity) uint {
 	e.ID = NextId
 	NextId++
-	append(Entities, e)
+	Entities = append(Entities, e)
+	return NextId - 1
 }
 
 /*

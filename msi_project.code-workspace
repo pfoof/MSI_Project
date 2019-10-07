@@ -1,0 +1,18 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"go.gopath": "${workspaceFolder}/server",
+		"terminal.integrated.env.windows": {
+			"GOPATH": "${workspaceFolder}/server"
+		},
+		"terminal.integrated.env.linux": {
+			"GOPATH": "${workspaceFolder}/server"
+		},
+		"go.installDependenciesWhenBuilding": true,
+		"git.ignoreLimitWarning": true
+	}
+}
