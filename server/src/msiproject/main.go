@@ -17,7 +17,7 @@ func listItems(w http.ResponseWriter, r *http.Request) {
 		item(w, r)
 		return
 	} else if r.Method == "GET" {
-		render.RenderIndex(mydatabase.Entities, w, r)
+		render.RenderJson(mydatabase.Entities, w)
 	} else if r.Method == "HEAD" {
 		w.Header().Add("Content-Length", "1024")
 		w.Header().Add("Content-Type", "text/plain")

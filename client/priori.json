@@ -1,0 +1,23 @@
+{
+  "project_name" : "MSI Project",
+
+  "lang" : "en",
+
+  "meta" : [],
+
+  "link" : [],
+
+  "d_flags" : [],
+
+  "dependencies" : [
+    "priori-bootstrap"
+  ],
+
+  "main" : "Main",
+
+  "src" : [
+    "src"
+  ],
+
+  "output" : "build"
+}

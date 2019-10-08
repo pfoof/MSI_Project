@@ -15,7 +15,7 @@
 		"go.installDependenciesWhenBuilding": true,
 		"git.ignoreLimitWarning": true,
 		"haxe.configurations": [
-			["-lib", "priori", "-js", "msiproject.js"]
+			["-lib", "priori", "-lib", "priori-bootstrap", "-cp", "client/src", "-js", "msiproject.js"]
 		]
 	},
 	"launch": {
