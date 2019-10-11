@@ -21,17 +21,22 @@ func listItems(w http.ResponseWriter, r *http.Request) {
 		item(w, r)
 		return
 	} else if r.Method == "GET" {
+		w.Header().Add("Access-Control-Allow-Origin", "*")
 		render.RenderJson(mydatabase.Entities, w)
 	} else if r.Method == "HEAD" {
+		w.Header().Add("Access-Control-Allow-Origin", "*")
 		w.Header().Add("Content-Length", "1024")
 		w.Header().Add("Content-Type", "text/plain")
 	} else {
+		w.Header().Add("Access-Control-Allow-Origin", "*")
 		w.WriteHeader(http.StatusBadRequest)
 	}
 
 }
 
 func item(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Add("Access-Control-Allow-Origin", "*")
 
 	buffer, err := ioutil.ReadAll(r.Body)
 	if err != nil {
