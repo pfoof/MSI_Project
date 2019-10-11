@@ -9,7 +9,11 @@ import (
 	"mydatabase"
 	"net/http"
 	"render"
+	"strconv"
 )
+
+type emptyStruct struct {
+}
 
 func listItems(w http.ResponseWriter, r *http.Request) {
 
@@ -60,7 +64,28 @@ func item(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else if r.Method == "GET" {
+		vars := mux.Vars(r)
+		id, err4 := strconv.Atoi(vars["itemid"])
+		if err4 != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprintf(w, err4.Error())
+			return
+		}
+		ent, _, err5 := mydatabase.FindEntity(uint(id))
+		if err5 != nil {
+			w.WriteHeader(http.StatusNotFound)
+			fmt.Fprintf(w, "{\"error\":\"Not found\"}")
+			return
+		}
 
+		entjson, err6 := json.Marshal(ent)
+		if err6 != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "{\"error\":\"JSON processing error\"}")
+			return
+		}
+		w.WriteHeader(200)
+		fmt.Fprintf(w, string(entjson))
 	}
 }
 
@@ -69,7 +94,7 @@ func main() {
 	http.Handle("/", rtr)
 
 	rtr.HandleFunc("/", listItems)
-	rtr.HandleFunc("/{[0-9]+}", item)
+	rtr.HandleFunc("/{itemid}", item)
 
 	http.ListenAndServe(":8000", nil)
 }
