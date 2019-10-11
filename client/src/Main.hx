@@ -1,5 +1,6 @@
 package ;
 
+import client.ItemList;
 import priori.style.font.PriFontStyleWeight;
 import priori.style.font.PriFontStyle;
 import priori.view.text.PriText;
@@ -18,12 +19,12 @@ class Main extends PriApp {
     }
 
     override private function setup():Void {
-        this.addChild(loginForm = new client.LoginForm());
+        this.addChild(itemList = new ItemList());
     }
 
     override private function paint():Void {
-        loginForm.width = this.width;
-        loginForm.height = this.height;
+        //loginForm.width = this.width;
+        //loginForm.height = this.height;
         itemList.width = this.width;
         itemList.height = this.height;
     }
