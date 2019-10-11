@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-var Entities []Entity
+var Entities []Entity = make([]Entity, 0);
 var NextId uint = 1
 
 /*
