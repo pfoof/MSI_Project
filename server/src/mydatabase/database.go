@@ -4,7 +4,8 @@ import (
 	"fmt"
 )
 
-var Entities []Entity = make([]Entity, 0);
+var Entities []Entity = make([]Entity, 0)
+var Users map[uint]int = make(map[uint]int)
 var NextId uint = 1
 
 /*
@@ -45,4 +46,13 @@ func FindEntity(id uint) (Entity, int, error) {
 		}
 	}
 	return Entity{}, -1, fmt.Errorf("element %u not found", id)
+}
+
+func GetUserLevel(id uint) int {
+
+	if val, ok := Users[id]; ok {
+		return val
+	}
+
+	return 1
 }
