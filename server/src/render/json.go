@@ -2,16 +2,21 @@ package render
 
 import (
 	"encoding/json"
+	"fmt"
 	"mydatabase"
 	"net/http"
 )
 
-func RenderJson(e []mydatabase.Entity, wr http.ResponseWriter) {
-	wr.Header().Add("Content-type", "application/json")
+func RenderJson(e []mydatabase.Entity, wr http.ResponseWriter) int {
 	data, err := json.Marshal(e)
 	if err != nil {
-		wr.WriteHeader(http.StatusTeapot)
-		return
+		if wr != nil {
+			wr.WriteHeader(http.StatusInternalServerError)
+		}
+		return -1
 	}
-	wr.Write(data)
+	if wr != nil {
+		fmt.Fprintf(wr, string(data))
+	}
+	return len(data)
 }
