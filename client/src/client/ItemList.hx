@@ -1,5 +1,6 @@
 package client;
 
+import js.Browser;
 import haxe.Json;
 import priori.bootstrap.PriBSFormInputText;
 import priori.net.PriRequestMethod;
@@ -14,7 +15,7 @@ import priori.event.PriEvent;
 import priori.bootstrap.PriBSFormButton;
 
 class ItemList extends PriGroup {
-    
+
     private var list: PriDataGrid;
     private var refreshButton: PriBSFormButton;
     private var insertButton: PriBSFormButton;
@@ -112,7 +113,10 @@ class ItemList extends PriGroup {
     }
 
     public function addItem(item: ItemModel) {
-
+        var storage = Browser.getLocalStorage();
+        var currentDb = storage.getItem(Constants.LOCAL_STORAGE_LOG);
     }
+
+
 
 }
