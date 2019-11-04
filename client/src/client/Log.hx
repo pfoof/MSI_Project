@@ -7,7 +7,7 @@ import haxe.Json;
 typedef Record = {
     var item: Int;
     var change: Int;
-    var time: Int;
+    var time: Float;
 }
 
 class Log {
@@ -38,7 +38,7 @@ class Log {
         var q = 0;
         var sublist = records
             .filter( x -> x.item == item);
-        sublist.sort( (x, y) -> x.time - y.time );
+        sublist.sort( (x, y) -> cast(x.time - y.time, Int) );
 
         for(x in sublist) {
             if(x.change == Constants.ITEM_DELETE) {
@@ -51,8 +51,13 @@ class Log {
         return 0;
     }
 
-    public function logQuantity(time: Int, item: Int, change: Int) {
-
+    public function logQuantity(time: Float, item: Int, change: Int) {
+        var record: Record = {
+            time: time,
+            item: item,
+            change: change
+        };
+        records.push(record);
     }
 
 }
