@@ -1,4 +1,4 @@
-package client;
+package client.views;
 
 import priori.view.container.PriGroup;
 import priori.bootstrap.*;
@@ -9,6 +9,7 @@ class LoginForm extends PriGroup {
     private var passwordLabel: PriBSFormLabel;
     private var usernameInput: PriBSFormInputText;
     private var passwordInput: PriBSFormInputText;
+    private var loginButton: PriBSFormButton;
     
     public function new() {
         super();

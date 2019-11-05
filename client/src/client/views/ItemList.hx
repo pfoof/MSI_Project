@@ -1,4 +1,4 @@
-package client;
+package client.views;
 
 import js.Browser;
 import haxe.Json;
@@ -83,7 +83,7 @@ class ItemList extends PriGroup {
 
     public function refresh(?e: PriEvent): Void {
         trace("Starting request");
-        var request: PriURLRequest = new PriURLRequest("http://localhost:8000/");
+        var request: PriURLRequest = new PriURLRequest(Constants.SERVER_DEST);
         request.method = PriRequestMethod.GET;
         var loader: PriURLLoader = new PriURLLoader();
         loader.addEventListener(PriEvent.COMPLETE, onLoad);
@@ -91,15 +91,8 @@ class ItemList extends PriGroup {
     }
 
     public function insert(e: PriEvent): Void {
-        var request: PriURLRequest = new PriURLRequest("http://localhost:8000/");
-        request.method = "POST";
-        request.data = Json.stringify({
-            name: insertName.value,
-            prod: insertProd.value
-        });
-        var requester: PriURLLoader = new PriURLLoader();
+        Access.getAccessTarget().addProduct("", insertName.value, insertProd.value, 0.0, 1);
         requester.addEventListener(PriEvent.COMPLETE, onInsert);
-        requester.load(request);
     }
 
     public function onInsert(e: PriEvent): Void {
@@ -112,9 +105,14 @@ class ItemList extends PriGroup {
         trace(dataString);
     }
 
-    public function addItem(item: ItemModel) {
-        var storage = Browser.getLocalStorage();
-        var currentDb = storage.getItem(Constants.LOCAL_STORAGE_LOG);
+    public function itemAction(item: Int, change: Int) {
+        if(Constants.hasConnection()) {
+            var t = Access.getAccessTarget();
+        } else {
+            var log = Log.getLog();
+            log.logQuantity(Constants.getTimestamp(), item, change);
+            Log.saveLog(log);
+        }
     }
 
 
