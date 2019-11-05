@@ -1,26 +1,32 @@
 package client;
 
+import haxe.macro.Expr.Constant;
 import priori.net.PriURLLoader;
 import priori.net.PriURLHeader;
 import priori.net.PriURLRequest;
 import haxe.Json;
+import client.Access.Signal;
 
 
 class Remote extends Access {
 
-    private static var broadcasts: Array< Dynamic->Void > = new Array< Dynamic->Void >();
+    private var broadcasts: Array< (Signal, Dynamic) -> Void > = new Array< (Signal, Dynamic) -> Void >();
 
-    public static function addBroacast(callback: Dynamic->Void) {
-        
+    public function new() {
+
     }
 
-    private static function triggerBroadcasts(object: Dynamic) {
+    override public function addBroadcast(callback: (Signal, Dynamic)->Void) {
+        broadcasts.push(callback);
+    }
+
+    private function triggerBroadcasts(signal: Signal, object: Dynamic) {
         for(b in broadcasts)
-            b(object);
+            b(signal, object);
     }
 
 
-    private static function request(data: Dynamic, method: String, ?headers: Map<String, String>, ?callback: Dynamic->Void) {
+    private function request(data: Dynamic, method: String, ?headers: Map<String, String>, ?callback: (Signal, Dynamic)->Void, ?signal: Signal) {
         var request: PriURLRequest = new PriURLRequest(Constants.SERVER_DEST);
         request.method = method;
         request.data = data;
@@ -29,11 +35,11 @@ class Remote extends Access {
                 request.requestHeader.push(new priori.net.PriURLHeader(k,v));
         var requester = new PriURLLoader();
         if(callback != null)
-            requester.addEventListener(priori.event.PriEvent.COMPLETE, callback);
+            requester.addEventListener(priori.event.PriEvent.COMPLETE, d -> { callback(signal, d); } );
         requester.load(request);
     }
 
-    override public static function addProduct(token: String, name: String, manufact: String, price: Float, quant: Int, ?time: Float) {
+    override public function addProduct(token: String, name: String, manufact: String, price: Float, quant: Int, ?time: Float) {
         var data = Json.stringify({
             name: name,
             prod: manufact,
@@ -41,15 +47,41 @@ class Remote extends Access {
             quantity: quant
         });
         var headers = [Constants.TOKEN_HEADER => token];
-        Remote.request(data, "POST", headers, triggerBroadcasts);
+        request(data, "POST", headers, triggerBroadcasts, Signal.Add);
     }
 
-    override public static function deleteProduct(token: String, item: Int, ?time: Float) {
+    override public function editProduct(token: String, item: Int, name: String, manufact: String, price: Float, ?time: Float) {
+        var data = Json.stringify({
+            item: item,
+            name: name,
+            prod: manufact,
+            price: price
+        });
+        var headers = [Constants.TOKEN_HEADER => token];
+        request(data, "PUT", headers, triggerBroadcasts, Signal.Edit);
+    }
+
+    override public function deleteProduct(token: String, item: Int, ?time: Float) {
         var data = Json.stringify({
             item: item
         });
         var headers = [Constants.TOKEN_HEADER => token];
-        Remote.request(data, "DELETE", headers, triggerBroadcasts);
+        request(data, "DELETE", headers, triggerBroadcasts, Signal.Delete);
+    }
+
+    override public function addRemoveQuantity(token: String, item: Int, delta: Int, ?time: Float) {
+        var data = Json.stringify({
+            item: item,
+            change: delta
+        });
+        var headers = [Constants.TOKEN_HEADER => token];
+        request(data, "PUT", headers, triggerBroadcasts, Signal.Quantity);
+
+    }
+
+    override public function retrieveItems(token: String) {
+        var headers = [Constants.TOKEN_HEADER => token];
+        request("", "GET", headers, triggerBroadcasts, Signal.Retrieve);
     }
 
     //Determine server time
@@ -66,7 +98,7 @@ class Remote extends Access {
         new PriURLLoader(req);
     }
 
-    public static function itemInsert() {
+    public function itemInsert() {
         
     }
 
