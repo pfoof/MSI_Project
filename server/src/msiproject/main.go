@@ -13,7 +13,7 @@ type emptyStruct struct {
 
 func listItems(w http.ResponseWriter, r *http.Request) {
 
-	switch r.Method {
+  switch r.Method {
 	case "POST":
 		w.Header().Add("Access-Control-Allow-Origin", "*")
 		control.AddItem(r)
@@ -32,6 +32,7 @@ func listItems(w http.ResponseWriter, r *http.Request) {
 	default:
 		w.Header().Add("Access-Control-Allow-Origin", "*")
 		w.WriteHeader(http.StatusMethodNotAllowed)
+
 	}
 }
 
