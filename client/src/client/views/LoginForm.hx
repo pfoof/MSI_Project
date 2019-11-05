@@ -3,8 +3,10 @@ package client.views;
 import priori.view.container.PriGroup;
 import priori.bootstrap.*;
 
-class LoginForm extends PriGroup {
+class LoginForm extends PriGroupWithState {
     
+    public static inline final NAME = "login";
+
     private var usernameLabel: PriBSFormLabel;
     private var passwordLabel: PriBSFormLabel;
     private var usernameInput: PriBSFormInputText;

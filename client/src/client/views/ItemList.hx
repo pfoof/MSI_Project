@@ -1,5 +1,6 @@
 package client.views;
 
+import client.Access.Signal;
 import js.Browser;
 import haxe.Json;
 import priori.bootstrap.PriBSFormInputText;
@@ -14,7 +15,9 @@ import priori.view.container.PriGroup;
 import priori.event.PriEvent;
 import priori.bootstrap.PriBSFormButton;
 
-class ItemList extends PriGroup {
+class ItemList extends PriGroupWithState {
+
+    public static inline final NAME = "itemlist";
 
     private var list: PriDataGrid;
     private var refreshButton: PriBSFormButton;
@@ -60,7 +63,21 @@ class ItemList extends PriGroup {
         }];
         addChild(list);
 
+        Access.registerCallback(accessCallback);
+
         refresh();
+    }
+
+    private function accessCallback(signal: Signal, data: Dynamic): Void {
+        switch(signal) {
+            case Add | Delete | Quantity | Edit: {
+
+            }
+            case Retrieve: {
+                onLoad(data);
+            }
+            default: {}
+        }
     }
 
     override function paint() {
@@ -91,16 +108,15 @@ class ItemList extends PriGroup {
     }
 
     public function insert(e: PriEvent): Void {
-        Access.getAccessTarget().addProduct("", insertName.value, insertProd.value, 0.0, 1);
-        requester.addEventListener(PriEvent.COMPLETE, onInsert);
+        Access.getAccessTarget().addProduct("", insertName.value, insertProd.value, 100.0, 1);
     }
 
     public function onInsert(e: PriEvent): Void {
         refresh();
     }
 
-    public function onLoad(e: PriEvent): Void {
-        var dataString: String = e.data;
+    public function onLoad(e: Dynamic): Void {
+        var dataString: String = cast(cast(e.data, PriURLLoader).data, String);
         list.data = haxe.Json.parse(dataString);
         trace(dataString);
     }
