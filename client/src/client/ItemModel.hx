@@ -8,4 +8,8 @@ class ItemModel {
     public var price: Float;
     public var quantity: Int;
 
+    public function new() {
+        
+    }
+
 }
