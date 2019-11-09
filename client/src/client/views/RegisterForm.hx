@@ -13,7 +13,9 @@ import priori.event.*;
 import priori.style.border.PriBorderType;
 import js.Browser;
 
-class RegisterForm extends PriGroup {
+class RegisterForm extends PriGroupWithState {
+
+    public static inline final NAME = "register";
 
     var margin = 48;
     var spacing = 32;
