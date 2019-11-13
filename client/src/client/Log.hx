@@ -120,7 +120,7 @@ class Log {
     }
 
     public function getItem(item: Int, ?currentItem: ItemModel): ItemModel {
-        
+        return null;
     }
 
     public function logQuantity(time: Float, item: Int, change: Int) {

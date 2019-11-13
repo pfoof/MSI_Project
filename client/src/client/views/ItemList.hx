@@ -21,6 +21,7 @@ class ItemList extends PriGroupWithState {
 
     private var list: PriDataGrid;
     private var refreshButton: PriBSFormButton;
+    private var toolbuttons: Toolbuttons;
 
     public function new() {
         super();
@@ -29,6 +30,7 @@ class ItemList extends PriGroupWithState {
     override function setup() {
         super.setup();
 
+        toolbuttons = new Toolbuttons();
         refreshButton = new PriBSFormButton();
         refreshButton.text = "Refresh";
         refreshButton.addEventListener(PriTapEvent.TAP, refresh);
@@ -49,16 +51,20 @@ class ItemList extends PriGroupWithState {
         addChild(list);
 
         addChild(refreshButton);
+        
+        addChild(toolbuttons);
 
         Access.registerCallback(accessCallback);
 
         refresh();
+
+        this.validate();
     }
 
     private function accessCallback(signal: Signal, data: Dynamic): Void {
         switch(signal) {
             case Add | Delete | Quantity | Edit: {
-
+                refresh();
             }
             case Retrieve: {
                 onLoad(data);
@@ -69,6 +75,11 @@ class ItemList extends PriGroupWithState {
 
     override function paint() {
         super.paint();
+
+        toolbuttons.x = 0;
+        toolbuttons.height = 64;
+        toolbuttons.width = this.width;
+        toolbuttons.y = this.height - toolbuttons.height;
 
         refreshButton.x = 48;
         refreshButton.y = 48;

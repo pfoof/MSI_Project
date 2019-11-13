@@ -15,4 +15,12 @@ class Constants {
 
     public static final TOKEN_HEADER = "X-Auth-Token";
 
+    public static final RESET_FORM_DATA_ID = "id";
+    public static final RESET_FORM_DATA_NAME = "name";
+    public static final RESET_FORM_DATA_PROD = "prod";
+    public static final RESET_FORM_DATA_QUANTITY = "quantity";
+    public static final RESET_FORM_DATA_PRICE = "price";
+
+    public static final RESPONSE_STATUS_UNAUTH = 403;
+    public static final RESPONSE_STATUS_OK = 200;
 }

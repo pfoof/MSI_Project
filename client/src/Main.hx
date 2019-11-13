@@ -1,5 +1,7 @@
 package ;
 
+import priori.assets.AssetImage;
+import priori.assets.AssetManager;
 import client.views.*;
 import priori.style.font.PriFontStyleWeight;
 import priori.style.font.PriFontStyle;
@@ -17,13 +19,17 @@ class Main extends PriApp {
 
     public function new() {
         super();
+
+        /*AssetManager.g().addToQueue(new AssetImage("button_add", "images/add.png"));
+        AssetManager.g().load();*/
     }
 
     override private function setup():Void {
         ContentManager.getManager()
             .addScene(ItemList.NAME, new ItemList())
             .addScene(LoginForm.NAME, new LoginForm())
-            .addScene(RegisterForm.NAME, new RegisterForm());
+            .addScene(RegisterForm.NAME, new RegisterForm())
+            .addScene(AddItemForm.NAME, new AddItemForm());
 
         this.addChild(ContentManager.getManager());
 
