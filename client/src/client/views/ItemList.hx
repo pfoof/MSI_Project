@@ -41,6 +41,7 @@ class ItemList extends PriGroupWithState {
             new PriGridColumn("Manufacturer", "prod", PriGridColumnSizeType.FIT, false),
             new PriGridColumn("Product", "name", PriGridColumnSizeType.FIT, false),
             new PriGridColumn("Price", "price", PriGridColumnSizeType.FIXED, 54, true)
+            new PriGridColumn("", "actions", )
         ];
         list.data = [{
             id: 100,

@@ -1,5 +1,6 @@
 package client.views;
 
+import priori.bootstrap.type.PriBSContextualType;
 import priori.net.PriURLLoader;
 import priori.event.PriTapEvent;
 import priori.bootstrap.PriBSImage;
@@ -65,6 +66,7 @@ class AddItemForm extends PriGroupWithState {
         priceLabel.text = "Price:";
         idLabel.text = "ID: <new item>";
         errorLabel.text = "";
+        errorLabel.context = PriBSContextualType.DANGER;
         errorLabel.visible = false;
 
         nameInput = new PriBSFormInputText();
@@ -112,6 +114,7 @@ class AddItemForm extends PriGroupWithState {
     private var itemID = 0;
 
     override function reset(?data:Map<String, String>) {
+        errorLabel.visible = false;
         if(
             data == null ||
             !data.exists(Constants.RESET_FORM_DATA_ID) ||

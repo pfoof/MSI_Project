@@ -9,6 +9,17 @@ var Users map[uint]int = make(map[uint]int)
 var NextId uint = 1
 
 /*
+	generates a test database
+*/
+func TestDatabase() {
+	var ent Entity
+	ent.Name = "htc"
+	ent.Prod = "hermes"
+	ent.Price = 182.12
+	AddNew(ent)
+}
+
+/*
 	@e - entity to be added
 */
 func AddNew(e Entity) uint {
