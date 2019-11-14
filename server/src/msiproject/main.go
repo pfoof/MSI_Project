@@ -3,17 +3,28 @@ package main
 import (
 	"control"
 	"fmt"
-	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 type emptyStruct struct {
 }
 
+var tokens map[string]int
+
+func checkToken(t string) int {
+	if tokens
+}
+
+func add(w http.ResponseWriter, r *http.Request) {
+
+}
+
 func listItems(w http.ResponseWriter, r *http.Request) {
 
-  switch r.Method {
+	switch r.Method {
 	case "POST":
 		w.Header().Add("Access-Control-Allow-Origin", "*")
 		control.AddItem(r)
