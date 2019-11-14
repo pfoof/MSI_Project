@@ -40,14 +40,24 @@ class ItemList extends PriGroupWithState {
             new PriGridColumn("ID", "id", PriGridColumnSizeType.FIXED, 48, true),
             new PriGridColumn("Manufacturer", "prod", PriGridColumnSizeType.FIT, false),
             new PriGridColumn("Product", "name", PriGridColumnSizeType.FIT, false),
-            new PriGridColumn("Price", "price", PriGridColumnSizeType.FIXED, 54, true)
-            new PriGridColumn("", "actions", )
+            new PriGridColumn("Price", "price", PriGridColumnSizeType.FIXED, 54, true),
+            new PriGridColumn("Quantity", "quantity", PriGridColumnSizeType.FIXED, 48, true),
+            new PriGridColumn("", "actions", ItemListActionRenderer, PriGridColumnSizeType.FIXED, 64, false)
         ];
         list.data = [{
             id: 100,
             prod: "htc",
             name: "polaris",
-            price: 160.99
+            price: 160.99,
+            quantity: 32,
+            actions: "{
+                \"prod\":\"htc\",
+                \"id\":100,
+                \"name\":\"polaris\",
+                \"price\":160.99,
+                \"quantity\":32,
+                \"actions\":[\"edit\"]
+            }"
         }];
         addChild(list);
 
@@ -94,6 +104,14 @@ class ItemList extends PriGroupWithState {
     public function refresh(?e: PriEvent): Void {
         trace("Starting request");
         Access.getAccessTarget().retrieveItems("");
+    }
+
+    private function addActions(data: Array<Dynamic>): Array<Dynamic> {
+        var newData: Array<Dynamic> = new Array<Dynamic>();
+        for(d in data) {
+            newData.push(d);
+        }
+        return newData;
     }
 
     public function onLoad(e: Dynamic): Void {

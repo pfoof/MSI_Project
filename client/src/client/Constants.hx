@@ -23,4 +23,7 @@ class Constants {
 
     public static final RESPONSE_STATUS_UNAUTH = 403;
     public static final RESPONSE_STATUS_OK = 200;
+
+    public static final ACTION_EDIT = "edit";
+    public static final ACTION_DELETE = "delete";
 }

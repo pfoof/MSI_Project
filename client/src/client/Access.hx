@@ -11,6 +11,7 @@ class Access {
     public function addRemoveQuantity(token: String, item: Int, delta: Int, ?time: Float) {}
     public function retrieveItems(token: String) {}
     public function addBroadcast(callback: (Signal, Dynamic)->Void) {}
+    public function getUserActions(token: String): Array<String> {return [ Constants.ACTION_EDIT ];}
 
     public static function registerCallback(callback: (Signal, Dynamic)->Void) {
         getRemote().addBroadcast(callback);
