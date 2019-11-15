@@ -62,9 +62,32 @@ func checkToken(t string) int {
 	return 0
 }
 
+func get(id int) *Item {
+	var item Item
+	stmt, err := db.Prepare("select (id, name, prod, quantity, price) from items where id=?")
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("<get> Error preparing")
+		return nil
+	}
+	r, err := stmt.Query(id)
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("<get> Error query")
+		return nil
+	}
+	err = r.Scan(&(item.Item), &(item.Name), &(item.Prod), &(item.Quantity), &(item.Price))
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("<get> Error query")
+		return nil
+	}
+	return &item
+}
+
 func add(item *Item) int {
 	fmt.Printf(">Adding item %s, %s, %.2f, %d\n", item.Prod, item.Name, item.Price, item.Quantity)
-	stmt, err := db.Prepare("insert into items(name, prod, quantity, price) values(?,?,?,?)")
+	stmt, err := db.Prepare("insert into items(name, prod, quantity, price) values('?','?','?','?')")
 	if err != nil {
 		fmt.Println(err.Error())
 		fmt.Println("<add> Error preparing")
@@ -81,14 +104,45 @@ func add(item *Item) int {
 }
 
 func delete(item int) int {
+	fmt.Printf(">Deleting item %d\n", item)
+	stmt, err := db.Prepare("delete from items id = ?")
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("<del> Error preparing")
+		return -1
+	}
+	_, err = stmt.Exec(item)
+	if err != nil {
+		fmt.Printf(err.Error())
+		fmt.Println("<del> Error executing")
+		return -1
+	}
 	return 200
 }
 
 func update(item *Item) int {
+	id := item.Item
+	_item := get(id)
+	if _item == nil {
+		fmt.Printf("<upd> No item with id = %d\n", id)
+		return 404
+	}
+	stmt, err := db.Prepare("update items set name='?', prod='?', price=? where id=?")
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("<upd> Error preparing")
+		return -1
+	}
+	_, err = stmt.Exec(item.Name, item.Prod, item.Price, id)
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("<upd> Error executing")
+		return -1
+	}
 	return 200
 }
 
-func quantity(item *Item) int {
+func quantity(item int, delta int) int {
 	return 200
 }
 
@@ -187,6 +241,7 @@ func httpdelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ret := delete()
 }
 
 func httpupdate(w http.ResponseWriter, r *http.Request) {
