@@ -39,6 +39,8 @@ class ItemListActionRenderer extends PriGridCellRenderer {
         super.update();
         var val:ItemListActionRendererModel = Json.parse(value);
 
+        if(editButton == null || deleteButton == null) return;
+
         editButton.visible = false;
         deleteButton.visible = false;
 

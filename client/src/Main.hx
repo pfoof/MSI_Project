@@ -1,5 +1,6 @@
 package ;
 
+import js.Browser;
 import priori.assets.AssetImage;
 import priori.assets.AssetManager;
 import client.views.*;
@@ -7,6 +8,8 @@ import priori.style.font.PriFontStyleWeight;
 import priori.style.font.PriFontStyle;
 import priori.view.text.PriText;
 import priori.app.PriApp;
+import js.html.Storage;
+import js.html.Window;
 
 import client.*;
 
@@ -33,7 +36,19 @@ class Main extends PriApp {
 
         this.addChild(ContentManager.getManager());
 
-        ContentManager.getManager().switchContent(ItemList.NAME);
+        if(Browser.location.hash != null) {
+            if(Browser.location.hash.indexOf("token=") >= 0) {
+                var newtoken = Browser.location.hash.substring(Browser.location.hash.indexOf("token=")+"token=".length);
+                if(newtoken.length > 10)
+                    Browser.getLocalStorage().setItem(Constants.TOKEN_HEADER, newtoken);
+            }
+        }
+
+        var token = Browser.getLocalStorage().getItem(Constants.TOKEN_HEADER);
+        if(token == null || token.length <= 1 || token == "undefined") {
+            ContentManager.getManager().switchContent(LoginForm.NAME);
+        } else 
+            ContentManager.getManager().switchContent(ItemList.NAME);
     }
 
     override private function paint():Void {

@@ -395,7 +395,7 @@ func main() {
 
 	gomniauth.SetSecurityKey(os.Getenv("OAUTH_SECURITY_KEY"))
 	gomniauth.WithProviders(
-		github.New(os.Getenv("GITHUB_CLIENT_ID"), os.Getenv("GITHUB_SECRET_KEY"), "http://myhost:8000/callback/github"),
+		github.New(os.Getenv("GITHUB_CLIENT_ID"), os.Getenv("GITHUB_SECRET_KEY"), "https://myhost:8000/callback/github"),
 	)
 
 	rtr := mux.NewRouter()
@@ -406,7 +406,7 @@ func main() {
 	rtr.HandleFunc("/login/{prov}", login)
 	rtr.HandleFunc("/{itemid}", item)
 
-	http.ListenAndServe(":8000", nil)
+	http.ListenAndServeTLS(":8000", "server.crt", "server.key", nil)
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
@@ -418,12 +418,14 @@ func login(w http.ResponseWriter, r *http.Request) {
 	provider, err := gomniauth.Provider(prov)
 	if err != nil {
 		http.Error(w, "Provider unsupported.", http.StatusBadRequest)
+		fmt.Println("Provider unsupported.")
 		return
 	}
 
 	loginUrl, err := provider.GetBeginAuthURL(nil, nil)
 	if err != nil {
 		http.Error(w, "Begin url unknown", http.StatusInternalServerError)
+		fmt.Println("Begin url unknown")
 		return
 	}
 	w.Header().Set("Location", loginUrl)
@@ -454,16 +456,13 @@ func callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, token, err := loginWithEmail(user.Email())
+	_, token, err := loginWithEmail(user.Email())
 	if err != nil {
 		http.Error(w, "Error logging in", http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Add("X-Auth-Token", token)
-	w.Header().Set("Location", fmt.Sprintf("http://com.mymobile.msi:5900/%s", token))
-	fmt.Fprintf(w, "success (%d)", id)
-	w.WriteHeader(http.StatusTemporaryRedirect)
+	http.Redirect(w, r, fmt.Sprintf("http://com.mymobile.msi:5500/client/build/#token=%s", token), 301)
 }
 
 func newToken(email string) string {
