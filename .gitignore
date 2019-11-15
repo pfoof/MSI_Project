@@ -5,3 +5,4 @@ server/pkg
 server/src/github.com
 server/src/golang.org
 server/src/go.mongodb.org
+server/src/gopkg.in

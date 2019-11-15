@@ -4,17 +4,25 @@ import (
 	"bytes"
 	_ "bytes"
 	"control"
+	"crypto/sha512"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	_ "io/ioutil"
 	"net/http"
+	"os"
+	_ "os"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 	_ "github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/stretchr/gomniauth"
+	_ "github.com/stretchr/gomniauth"
+	"github.com/stretchr/gomniauth/providers/github"
+	"github.com/stretchr/objx"
 )
 
 type emptyStruct struct {
@@ -380,17 +388,144 @@ func main() {
 	}
 	defer db.Close()
 
-	tokens[TEST_TOKEN] = 1
+	testToken := newToken("rotworm0@yahoo.pl")
+	tokens[testToken] = 1
 
-	fmt.Println("Created test token ", TEST_TOKEN)
+	fmt.Printf("Created test token %s\n", testToken)
+
+	gomniauth.SetSecurityKey(os.Getenv("OAUTH_SECURITY_KEY"))
+	gomniauth.WithProviders(
+		github.New(os.Getenv("GITHUB_CLIENT_ID"), os.Getenv("GITHUB_SECRET_KEY"), "http://myhost:8000/callback/github"),
+	)
 
 	rtr := mux.NewRouter()
 	http.Handle("/", rtr)
 
 	rtr.HandleFunc("/", listItems)
+	rtr.HandleFunc("/callback/{prov}", callback)
+	rtr.HandleFunc("/login/{prov}", login)
 	rtr.HandleFunc("/{itemid}", item)
 
 	http.ListenAndServe(":8000", nil)
+}
+
+func login(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	prov := vars["prov"]
+
+	w.Header().Add("Access-Control-Allow-Origin", "*")
+
+	provider, err := gomniauth.Provider(prov)
+	if err != nil {
+		http.Error(w, "Provider unsupported.", http.StatusBadRequest)
+		return
+	}
+
+	loginUrl, err := provider.GetBeginAuthURL(nil, nil)
+	if err != nil {
+		http.Error(w, "Begin url unknown", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Location", loginUrl)
+	w.WriteHeader(http.StatusTemporaryRedirect)
+}
+
+func callback(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	prov := vars["prov"]
+
+	w.Header().Add("Access-Control-Allow-Origin", "*")
+
+	provider, err := gomniauth.Provider(prov)
+	if err != nil {
+		http.Error(w, "Provider unsupported.", http.StatusBadRequest)
+		return
+	}
+
+	creds, err := provider.CompleteAuth(objx.MustFromURLQuery(r.URL.RawQuery))
+	if err != nil {
+		http.Error(w, "Error getting credentials.", http.StatusInternalServerError)
+		return
+	}
+
+	user, err := provider.GetUser(creds)
+	if err != nil {
+		http.Error(w, "Error getting user from remote server", http.StatusInternalServerError)
+		return
+	}
+
+	id, token, err := loginWithEmail(user.Email())
+	if err != nil {
+		http.Error(w, "Error logging in", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add("X-Auth-Token", token)
+	w.Header().Set("Location", fmt.Sprintf("http://com.mymobile.msi:5900/%s", token))
+	fmt.Fprintf(w, "success (%d)", id)
+	w.WriteHeader(http.StatusTemporaryRedirect)
+}
+
+func newToken(email string) string {
+	bytes := []byte(fmt.Sprintf("%s%s", email, time.Now().String()))
+	h := sha512.New()
+	h.Write(bytes)
+	return fmt.Sprintf("%X", h.Sum(nil))
+}
+
+func loginWithEmail(email string) (int, string, error) {
+	stmt, err := db.Prepare("select count(*) from users where email=?")
+	if err != nil {
+		return -1, "", err
+	}
+
+	var count int
+	err = stmt.QueryRow(email).Scan(&count)
+	if err != nil {
+		return -1, "", err
+	}
+
+	if count > 0 {
+		stmt, err = db.Prepare("select id from users where email=?")
+		if err != nil {
+			return -1, "", err
+		}
+
+		var id int
+		err = stmt.QueryRow(email).Scan(&id)
+		if err != nil {
+			return -1, "", err
+		}
+
+		token := newToken(email)
+		tokens[token] = id
+		fmt.Printf("Logged in %s with token %s...\n", email, token[:6])
+		return id, token, nil
+
+	} else {
+		stmt, err = db.Prepare("insert into users(email, level) values(?,0)")
+		if err != nil {
+			return -1, "", err
+		}
+		r, err := stmt.Exec(email)
+		if err != nil {
+			return -1, "", err
+		}
+
+		id, err := r.LastInsertId()
+		if err != nil {
+			return -1, "", err
+		}
+
+		token := newToken(email)
+		tokens[token] = int(id)
+		fmt.Printf("Created and logged in %s with token %s...\n", email, token[:6])
+
+		return int(id), token, nil
+
+	}
+
+	return -1, "", nil
 }
 
 func listItems(w http.ResponseWriter, r *http.Request) {
