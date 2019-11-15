@@ -44,6 +44,13 @@ type Quantity struct {
 	Delta int `json:"delta"`
 }
 
+type Email struct {
+	Email      string `json:"email"`
+	Verified   bool   `json:"verified"`
+	Primary    bool   `json:"primary"`
+	Visibility string `json:"visibility"`
+}
+
 var tokens map[string]int = make(map[string]int)
 var db *sql.DB
 
@@ -450,13 +457,43 @@ func callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := provider.GetUser(creds)
+	client, err := provider.GetClient(creds)
 	if err != nil {
-		http.Error(w, "Error getting user from remote server", http.StatusInternalServerError)
+		http.Error(w, "Error getting authenticated client.", http.StatusInternalServerError)
 		return
 	}
 
-	_, token, err := loginWithEmail(user.Email())
+	resp, err := client.Get("https://api.github.com/user/emails")
+	if err != nil {
+		http.Error(w, "Error asking for emails", http.StatusInternalServerError)
+		return
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		http.Error(w, "Error reading emails", http.StatusInternalServerError)
+		return
+	}
+
+	emails := []Email{}
+	err = json.Unmarshal(body, &emails)
+	if err != nil {
+		http.Error(w, "Error decoding emails (json)", http.StatusInternalServerError)
+		fmt.Println(err.Error())
+		return
+	}
+
+	if len(emails) <= 0 {
+		http.Error(w, "No emails found!", http.StatusBadRequest)
+		return
+	}
+
+	if len(emails[0].Email) < 5 {
+		http.Error(w, "Email record is not valid!", http.StatusBadRequest)
+		return
+	}
+
+	_, token, err := loginWithEmail(emails[0].Email)
 	if err != nil {
 		http.Error(w, "Error logging in", http.StatusInternalServerError)
 		return
@@ -498,7 +535,7 @@ func loginWithEmail(email string) (int, string, error) {
 
 		token := newToken(email)
 		tokens[token] = id
-		fmt.Printf("Logged in %s with token %s...\n", email, token[:6])
+		fmt.Printf("Logged in %s #%d with token %s...\n", email, id, token[:6])
 		return id, token, nil
 
 	} else {
@@ -518,7 +555,7 @@ func loginWithEmail(email string) (int, string, error) {
 
 		token := newToken(email)
 		tokens[token] = int(id)
-		fmt.Printf("Created and logged in %s with token %s...\n", email, token[:6])
+		fmt.Printf("Created and logged in %s #d with token %s...\n", email, int(id), token[:6])
 
 		return int(id), token, nil
 
