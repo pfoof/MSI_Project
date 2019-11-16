@@ -16,10 +16,6 @@ import client.*;
 
 class Main extends PriApp {    
 
-    private var loginForm: LoginForm;
-    private var itemList: ItemList;
-    private var registerForm: RegisterForm;
-
     public function new() {
         super();
 
@@ -45,7 +41,7 @@ class Main extends PriApp {
         }
 
         var token = Utils.getToken();
-        if(token == null || token.length <= 1 || token == "undefined") {
+        if(token == null || token.length <= 1 || token == "undefined" || token == null || token == "null") {
             ContentManager.getManager().switchContent(LoginForm.NAME);
         } else 
             ContentManager.getManager().switchContent(ItemList.NAME);

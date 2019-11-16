@@ -1,7 +1,11 @@
 package client.views;
 
+import priori.bootstrap.PriBSLabel;
+import priori.bootstrap.type.PriBSContextualType;
+import priori.bootstrap.PriBSFormLabel;
 import client.Access.Signal;
 import js.Browser;
+import js.jquery.JqXHR;
 import haxe.Json;
 import priori.bootstrap.PriBSFormInputText;
 import priori.net.PriRequestMethod;
@@ -22,6 +26,7 @@ class ItemList extends PriGroupWithState {
     private var list: PriDataGrid;
     private var refreshButton: PriBSFormButton;
     private var toolbuttons: Toolbuttons;
+    private var errorLabel: PriBSLabel;
 
     public function new() {
         super();
@@ -29,6 +34,11 @@ class ItemList extends PriGroupWithState {
 
     override function setup() {
         super.setup();
+
+        errorLabel = new PriBSLabel();
+        errorLabel.text = "";
+        errorLabel.context = PriBSContextualType.DANGER;
+        errorLabel.visible = false;
 
         toolbuttons = new Toolbuttons();
         refreshButton = new PriBSFormButton();
@@ -60,10 +70,10 @@ class ItemList extends PriGroupWithState {
             }
         }];
         addChild(list);
-
-        addChild(refreshButton);
         
         addChild(toolbuttons);
+        
+        addChild(errorLabel);
 
         Access.registerCallback(accessCallback);
 
@@ -72,15 +82,47 @@ class ItemList extends PriGroupWithState {
         this.validate();
     }
 
+    private var errorTimeout: Int;
+    private function showError(s: String) {
+        errorLabel.text = s;
+        errorLabel.visible = true;
+        validate();
+        Browser.window.clearTimeout(errorTimeout);
+        errorTimeout = Browser.window.setTimeout(function() {
+            errorLabel.visible = false;
+        }, 3500);
+    }
+
     private function accessCallback(signal: Signal, data: Dynamic): Void {
         switch(signal) {
             case Add | Delete | Quantity | Edit: {
                 refresh();
             }
+
             case Retrieve: {
-                onLoad(data);
-                trace("Retrieve!");
+                if(Reflect.hasField(data, "e") &&
+                    (data.e.state() == "resolved" || data.e.state() == "success") &&
+                        (data.e.status >= 200 && data.e.status < 300)) {
+                            onLoad(data);
+                            trace("Loaded!");
+                        } else {
+                            trace("Retrieve has statusCode != 200");
+                            var _statusCode = -1;
+                            var _state = "...";
+                            var _data = "";
+                            if(Reflect.hasField(data, "e")) {
+                                _statusCode = data.e.status;
+                                _state = data.e.state();
+                            }
+                            if(Reflect.hasField(data, "data") && data.data != null)
+                                if(data.data.length > 100)
+                                    _data = data.data.substr(0,100);
+                                else
+                                    _data = data.data;
+                            showError("Error ("+_statusCode+"/"+_state+"): "+_data);
+                        }
             }
+
             default: {}
         }
     }
@@ -92,6 +134,7 @@ class ItemList extends PriGroupWithState {
         toolbuttons.height = 64;
         toolbuttons.width = this.width;
         toolbuttons.y = this.height - toolbuttons.height;
+        toolbuttons.validate();
 
         refreshButton.x = 48;
         refreshButton.y = 48;
@@ -100,6 +143,9 @@ class ItemList extends PriGroupWithState {
         list.width = this.width - 48*2;
         list.y = 24;
         list.height = this.height - list.y - 24;
+
+        errorLabel.centerX = this.width/2;
+        errorLabel.y = 48;
     }
 
     public function refresh(?e: PriEvent): Void {

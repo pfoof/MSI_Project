@@ -52,13 +52,13 @@ class Remote extends Access {
             method: method,
             dataType: "text",
             data: data,
-            success: function(data: Dynamic, status: String, e:Dynamic) {
+            success: function(_data: Dynamic, status: String, e:Dynamic) {
                 if(callback != null)
-                    callback(signal, {data: data, e: e});
+                    callback(signal, {data: _data, e: e});
             },
-            error: function(data: Dynamic, status: String, e:Dynamic) {
+            error: function(e: Dynamic, status: String, err:String) {
                 if(callback != null)
-                    callback(signal, {data: data, e: e});
+                    callback(signal, {data: err, e: e});
             }
         });
         

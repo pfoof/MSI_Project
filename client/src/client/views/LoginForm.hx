@@ -18,7 +18,9 @@ class LoginForm extends PriGroupWithState {
     private var loginButton: PriBSFormButton;
 
     private var githubButton: PriBSFormButton;
+    private var localButton: PriBSFormButton;
     private var layout: PriVerticalLayout;
+    private var error: PriBSLabel;
     
     public function new() {
         super();
@@ -26,6 +28,11 @@ class LoginForm extends PriGroupWithState {
 
     override function setup() {
         super.setup();
+
+        error = new PriBSLabel();
+        error.visible = false;
+        error.text = "";
+        error.context = DANGER;
 
         title = new PriBSFormLabel();
         title.text = "Login options";
@@ -36,12 +43,19 @@ class LoginForm extends PriGroupWithState {
 
         githubButton = new PriBSFormButton();
         githubButton.text = "Login with GitHub";
+        localButton = new PriBSFormButton();
+        localButton.text = "Login locally";
+        
+        layout.addChild(error);
         layout.addChild(title);
+
         layout.addChild(githubButton);
+        layout.addChild(localButton);
 
         addChild(layout);
 
         githubButton.addEventListener(PriTapEvent.TAP, _ -> Browser.window.location.replace("https://myhost:8000/login/github"));
+        localButton.addEventListener(PriTapEvent.TAP, _ -> Browser.window.location.replace("https://myhost:8000/login/local"));
 
         this.usernameLabel = new PriBSFormLabel();
         this.usernameLabel.text = "Username";
@@ -86,5 +100,13 @@ class LoginForm extends PriGroupWithState {
 
     }
 
+    override function reset(?data:Map<String, String>) {
+        super.reset(data);
+        error.visible = false;
+        if(data.exists("error")) {
+            error.visible = true;
+            error.text = data.get("error");
+        }
+    }
 
 }
