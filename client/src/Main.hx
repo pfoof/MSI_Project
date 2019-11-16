@@ -44,7 +44,7 @@ class Main extends PriApp {
             }
         }
 
-        var token = Browser.getLocalStorage().getItem(Constants.TOKEN_HEADER);
+        var token = Utils.getToken();
         if(token == null || token.length <= 1 || token == "undefined") {
             ContentManager.getManager().switchContent(LoginForm.NAME);
         } else 

@@ -37,7 +37,7 @@ class ItemList extends PriGroupWithState {
 
         list = new PriDataGrid();
         list.columns = [
-            new PriGridColumn("ID", "id", PriGridColumnSizeType.FIXED, 48, true),
+            new PriGridColumn("ID", "item", PriGridColumnSizeType.FIXED, 48, true),
             new PriGridColumn("Manufacturer", "prod", PriGridColumnSizeType.FIT, false),
             new PriGridColumn("Product", "name", PriGridColumnSizeType.FIT, false),
             new PriGridColumn("Price", "price", PriGridColumnSizeType.FIXED, 54, true),
@@ -45,19 +45,19 @@ class ItemList extends PriGroupWithState {
             new PriGridColumn("", "actions", ItemListActionRenderer, PriGridColumnSizeType.FIXED, 64, false)
         ];
         list.data = [{
-            id: 100,
+            item: 100,
             prod: "htc",
             name: "polaris",
             price: 160.99,
             quantity: 32,
-            actions: "{
-                \"prod\":\"htc\",
-                \"id\":100,
-                \"name\":\"polaris\",
-                \"price\":160.99,
-                \"quantity\":32,
-                \"actions\":[\"edit\"]
-            }"
+            actions: {
+                item:100,
+                prod: "htc",
+                name: "polaris",
+                price: 160.99,
+                quantity: 32,
+                actions: ["edit"]
+            }
         }];
         addChild(list);
 
@@ -79,6 +79,7 @@ class ItemList extends PriGroupWithState {
             }
             case Retrieve: {
                 onLoad(data);
+                trace("Retrieve!");
             }
             default: {}
         }
@@ -103,7 +104,7 @@ class ItemList extends PriGroupWithState {
 
     public function refresh(?e: PriEvent): Void {
         trace("Starting request");
-        Access.getAccessTarget().retrieveItems("");
+        Access.getAccessTarget().retrieveItems(Utils.getToken());
     }
 
     private function addActions(data: Array<Dynamic>): Array<Dynamic> {
@@ -115,9 +116,20 @@ class ItemList extends PriGroupWithState {
     }
 
     public function onLoad(e: Dynamic): Void {
-        var dataString: String = cast(cast(e.data, PriURLLoader).data, String);
-        list.data = haxe.Json.parse(dataString);
-        trace(dataString);
+        var ddata = cast(Json.parse(e.data), Array<Dynamic>);
+        var newData = new Array<Dynamic>();
+        for(i in ddata) {
+            var actions = {
+                item: i.item,
+                prod: i.prod,
+                name: i.name,
+                quantity: i.quantity,
+                price: i.price,
+                actions: ["edit"]};
+            Reflect.setField(i, "actions", actions);
+            newData.push(i);
+        }
+        list.data = newData;
     }
 
     public function itemAction(item: Int, change: Int) {

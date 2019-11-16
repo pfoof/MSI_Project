@@ -9,7 +9,7 @@ import priori.view.grid.cell.PriGridCellRenderer;
 
 class ItemListActionRenderer extends PriGridCellRenderer {
 
-    private var id: Int;
+    private var item: Int;
     private var name: String;
     private var prod: String;
     private var price: Float;
@@ -37,21 +37,38 @@ class ItemListActionRenderer extends PriGridCellRenderer {
 
     override function update() {
         super.update();
-        var val:ItemListActionRendererModel = Json.parse(value);
+        var val:Dynamic = value;
+
+        if(val == null) return;
+        
+        if(Reflect.hasField(val, "name"))
+           this.name = val.name;
+
+        if(Reflect.hasField(val, "item"))
+            this.item = val.item; 
+
+        if(Reflect.hasField(val, "price"))
+            this.price = val.price;
+
+        if(Reflect.hasField(val, "quantity"))
+            this.quantity = val.quantity;
+
+        if(Reflect.hasField(val, "prod"))
+            this.prod = val.prod;
 
         if(editButton == null || deleteButton == null) return;
 
         editButton.visible = false;
         deleteButton.visible = false;
 
-        if(val.actions == null) return;
-
-        if(val.actions.indexOf(Constants.ACTION_DELETE) > -1) {
-            deleteButton.visible = true;
-        }
-        
-        if(val.actions.indexOf(Constants.ACTION_EDIT) > -1) {
-            editButton.visible = true;
+        if(Reflect.hasField(val, "actions")) {
+            if(val.actions.indexOf(Constants.ACTION_DELETE) > -1) {
+                deleteButton.visible = true;
+            }
+            
+            if(val.actions.indexOf(Constants.ACTION_EDIT) > -1) {
+                editButton.visible = true;
+            }
         }
     }
 
@@ -69,7 +86,7 @@ class ItemListActionRenderer extends PriGridCellRenderer {
                 Constants.RESET_FORM_DATA_PROD => this.prod,
                 Constants.RESET_FORM_DATA_QUANTITY => ""+this.quantity,
                 Constants.RESET_FORM_DATA_PRICE => ""+this.price,
-                Constants.RESET_FORM_DATA_ID => ""+this.id
+                Constants.RESET_FORM_DATA_ID => ""+this.item
             ]);
     }
 

@@ -1,5 +1,7 @@
 package client;
 
+import js.jquery.JqXHR;
+import js.jquery.JQuery;
 import haxe.macro.Expr.Constant;
 import priori.net.PriURLLoader;
 import priori.net.PriURLHeader;
@@ -21,13 +23,46 @@ class Remote extends Access {
     }
 
     private function triggerBroadcasts(signal: Signal, object: Dynamic) {
-        for(b in broadcasts)
+        trace("Broadcasts");
+        for(b in broadcasts) {
             b(signal, object);
+            trace("Triggered a broadcast");
+        }
     }
 
 
     private function request(data: Dynamic, method: String, ?headers: Map<String, String>, ?callback: (Signal, Dynamic)->Void, ?signal: Signal) {
-        var request: PriURLRequest = new PriURLRequest(Constants.SERVER_DEST);
+        var _headers = {}
+        if(headers != null) {
+            for(k => v in headers) {
+                Reflect.setField(_headers, k, v);
+            }
+        }
+        
+        JQuery.support.cors = true;
+
+        if(!Std.is(data, String))
+            data = Json.stringify(data);
+
+        JQuery.ajax({
+            url: Constants.SERVER_DEST,
+            headers: _headers,
+            contentType: "application/json",
+            async: true,
+            method: method,
+            dataType: "text",
+            data: data,
+            success: function(data: Dynamic, status: String, e:Dynamic) {
+                if(callback != null)
+                    callback(signal, {data: data, e: e});
+            },
+            error: function(data: Dynamic, status: String, e:Dynamic) {
+                if(callback != null)
+                    callback(signal, {data: data, e: e});
+            }
+        });
+        
+        /*var request: PriURLRequest = new PriURLRequest(Constants.SERVER_DEST);
         request.method = method;
         request.data = data;
         if(headers != null)
@@ -36,7 +71,7 @@ class Remote extends Access {
         var requester = new PriURLLoader();
         if(callback != null)
             requester.addEventListener(priori.event.PriEvent.COMPLETE, d -> { callback(signal, d); } );
-        requester.load(request);
+        requester.load(request);*/
     }
 
     override public function addProduct(token: String, name: String, manufact: String, price: Float, quant: Int, ?time: Float) {
@@ -47,6 +82,7 @@ class Remote extends Access {
             quantity: quant
         });
         var headers = [Constants.TOKEN_HEADER => token];
+        trace("Sending POST request");
         request(data, "POST", headers, triggerBroadcasts, Signal.Add);
     }
 
@@ -58,6 +94,7 @@ class Remote extends Access {
             price: price
         });
         var headers = [Constants.TOKEN_HEADER => token];
+        trace("Sending PUT request");
         request(data, "PUT", headers, triggerBroadcasts, Signal.Edit);
     }
 

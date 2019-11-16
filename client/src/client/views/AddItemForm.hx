@@ -1,5 +1,6 @@
 package client.views;
 
+import js.html.XMLHttpRequest;
 import priori.bootstrap.type.PriBSContextualType;
 import priori.net.PriURLLoader;
 import priori.event.PriTapEvent;
@@ -8,6 +9,7 @@ import priori.view.layout.PriVerticalLayout;
 import priori.types.PriFormInputTextFieldType;
 import priori.bootstrap.PriBSFormInputText;
 import priori.bootstrap.PriBSLabel;
+import js.jquery.JqXHR;
 
 class AddItemForm extends PriGroupWithState {
 
@@ -43,8 +45,7 @@ class AddItemForm extends PriGroupWithState {
         saveButton = new PriBSImage();
         saveButton.load('images/save.png');
         saveButton.addEventListener(PriTapEvent.TAP,
-            _ -> ContentManager.getManager()
-                .switchContent(ItemList.NAME)
+            _ -> save()
         );
 
         layout = new PriVerticalLayout();
@@ -89,12 +90,17 @@ class AddItemForm extends PriGroupWithState {
         Access.registerCallback( (signal, data) -> {
             switch(signal) {
                 case Add | Edit: {
-                    var req: PriURLLoader = cast(data.data, PriURLLoader);
-                    if(req.status == Constants.RESPONSE_STATUS_OK) {
+                    trace(Reflect.hasField(data, "e"));
+                    var req = data.e;
+                    if(req.status >= Constants.RESPONSE_STATUS_OK && req.status < 300) {
                         ContentManager.getManager().switchContent(ItemList.NAME);
-                    } else if(req.status == Constants.RESPONSE_STATUS_UNAUTH) {
+                    } else if(req.status >= 400) {
                         errorLabel.visible = true;
-                        errorLabel.text = req.data;
+                        errorLabel.text = data.data;
+                        nameInput.disabled = false;
+                        prodInput.disabled = false;
+                        priceInput.disabled = false;
+                        quantityInput.disabled = signal == Add;
                     }
                     
                 }
@@ -161,10 +167,16 @@ class AddItemForm extends PriGroupWithState {
         var price = Std.parseFloat(priceInput.value);
         var quant = Std.parseInt(quantityInput.value);
 
+        nameInput.disabled = true;
+        prodInput.disabled = true;
+        priceInput.disabled = true;
+        quantityInput.disabled = true;
+        errorLabel.visible = false;
+
         if(itemID <= 0) {
-            Access.getAccessTarget().addProduct("", name, prod, price, quant);
+            Access.getAccessTarget().addProduct(Utils.getToken(), name, prod, price, quant);
         } else {
-            Access.getAccessTarget().editProduct("", itemID, name, prod, price);
+            Access.getAccessTarget().editProduct(Utils.getToken(), itemID, name, prod, price);
         }
     }
 

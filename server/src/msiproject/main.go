@@ -493,6 +493,11 @@ func callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !emails[0].Verified {
+		http.Error(w, "Email unverified!", http.StatusUnauthorized)
+		return
+	}
+
 	_, token, err := loginWithEmail(emails[0].Email)
 	if err != nil {
 		http.Error(w, "Error logging in", http.StatusInternalServerError)
@@ -555,7 +560,7 @@ func loginWithEmail(email string) (int, string, error) {
 
 		token := newToken(email)
 		tokens[token] = int(id)
-		fmt.Printf("Created and logged in %s #d with token %s...\n", email, int(id), token[:6])
+		fmt.Printf("Created and logged in %s #%d with token %s...\n", email, int(id), token[:6])
 
 		return int(id), token, nil
 
@@ -567,6 +572,12 @@ func loginWithEmail(email string) (int, string, error) {
 func listItems(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
+	case "OPTIONS":
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "*")
+
 	case "POST":
 		httpadd(w, r)
 
@@ -593,6 +604,12 @@ func listItems(w http.ResponseWriter, r *http.Request) {
 func item(w http.ResponseWriter, r *http.Request) {
 
 	switch r.Method {
+	case "OPTIONS":
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "*")
+
 	case "DELETE":
 		httpdelete(w, r)
 
