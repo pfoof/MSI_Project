@@ -19,7 +19,7 @@ import client.*;
 class Main extends PriApp {    
 
     public function new() {
-        super();
+        super(); 
 
         /*AssetManager.g().addToQueue(new AssetImage("button_add", "images/add.png"));
         AssetManager.g().load();*/
@@ -34,7 +34,7 @@ class Main extends PriApp {
 
         this.addChild(ContentManager.getManager());
 
-        if(Browser.location.hash != null) {
+        if(Browser.location.hash != null && Browser.location.hash != "") {
             if(Browser.location.hash.indexOf("token=") >= 0) {
                 var newtoken = Browser.location.hash.substring(Browser.location.hash.indexOf("token=")+"token=".length);
                 if(newtoken.length > 10)
@@ -71,4 +71,9 @@ class Main extends PriApp {
         ContentManager.getManager().height = this.height;
     }
 
+}
+
+@:native("window.plugins.intent") extern class CordovaPluginsIntent {
+    public static function getCordovaIntent(s:Dynamic->Void, e:Void->Void):Void;
+    public static function setNewIntentHandler(s:Dynamic -> Void): Void;
 }

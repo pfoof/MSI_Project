@@ -1,5 +1,6 @@
 package client.views;
 
+import haxe.macro.Expr.Constant;
 import js.Browser;
 import priori.event.PriTapEvent;
 import priori.view.layout.PriVerticalLayout;
@@ -21,6 +22,7 @@ class LoginForm extends PriGroupWithState {
     private var localButton: PriBSFormButton;
     private var layout: PriVerticalLayout;
     private var error: PriBSLabel;
+    private var debug: PriBSLabel;
     
     public function new() {
         super();
@@ -33,6 +35,10 @@ class LoginForm extends PriGroupWithState {
         error.visible = false;
         error.text = "";
         error.context = DANGER;
+        
+        debug = new PriBSLabel();
+        debug.visible = true;
+        debug.text = "";
 
         title = new PriBSFormLabel();
         title.text = "Login options";
@@ -46,6 +52,7 @@ class LoginForm extends PriGroupWithState {
         localButton = new PriBSFormButton();
         localButton.text = "Login locally";
         
+        layout.addChild(debug);
         layout.addChild(error);
         layout.addChild(title);
 
@@ -54,8 +61,8 @@ class LoginForm extends PriGroupWithState {
 
         addChild(layout);
 
-        githubButton.addEventListener(PriTapEvent.TAP, _ -> Browser.window.location.replace("https://myhost:8000/login/github"));
-        localButton.addEventListener(PriTapEvent.TAP, _ -> Browser.window.location.replace("https://myhost:8000/login/local"));
+        githubButton.addEventListener(PriTapEvent.TAP, _ -> Browser.window.location.replace(Constants.SERVER_DEST+"/login/github"));
+        localButton.addEventListener(PriTapEvent.TAP, _ -> Browser.window.location.replace(Constants.SERVER_DEST+"/login/local"));
 
         this.usernameLabel = new PriBSFormLabel();
         this.usernameLabel.text = "Username";

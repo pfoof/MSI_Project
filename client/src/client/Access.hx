@@ -29,7 +29,7 @@ class Access {
     }
 
     public static function getAccessTarget(): Access {
-        if(Constants.hasConnection())
+        if(Constants.hasConnection() && Utils.ping())
             return Access.getRemote();
         else
             return Access.getLocal();

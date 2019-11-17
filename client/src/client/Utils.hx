@@ -55,7 +55,7 @@ class Utils {
             //If token is invalid -> logout and ret zero level
             if(xhr.status < 100 || xhr.status >= 400) {
                 Utils.logout();
-                return 0;
+                return -1;
             } else {
                 //Else save level to browser
                 if(xhr.responseType == XMLHttpRequestResponseType.JSON && Reflect.hasField(xhr.response, "level")) {

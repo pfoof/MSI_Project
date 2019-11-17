@@ -1,5 +1,6 @@
 package client.views;
 
+import haxe.macro.Expr.Constant;
 import priori.view.layout.PriHorizontalLayout;
 import haxe.Json;
 import priori.event.PriTapEvent;
@@ -17,6 +18,8 @@ class ItemListActionRenderer extends PriGridCellRenderer {
 
     private var editButton: PriBSImage;
     private var deleteButton: PriBSImage;
+    private var addButton: PriBSImage;
+    private var removeButton: PriBSImage;
     private var layout: PriHorizontalLayout;
 
     override function setup() {
@@ -28,10 +31,16 @@ class ItemListActionRenderer extends PriGridCellRenderer {
         editButton.load("images/edit.png");
         deleteButton = new PriBSImage();
         deleteButton.load("images/delete.png");
+        addButton = new PriBSImage();
+        addButton.load("images/add_small.png");
+        removeButton = new PriBSImage();
+        removeButton.load("images/remove.png");
         editButton.addEventListener(PriTapEvent.TAP, editEvent);
         deleteButton.addEventListener(PriTapEvent.TAP, deleteEvent);
+        addButton.addEventListener(PriTapEvent.TAP, addQuantityEvent);
+        removeButton.addEventListener(PriTapEvent.TAP, removeQuantityEvent);
 
-        layout.addChildList([editButton, deleteButton]);
+        layout.addChildList([editButton, deleteButton, addButton, removeButton]);
         this.addChild(layout);
         update();
         validate();
@@ -62,15 +71,24 @@ class ItemListActionRenderer extends PriGridCellRenderer {
 
         editButton.visible = false;
         deleteButton.visible = false;
+        addButton.visible = false;
+        removeButton.visible = false;
 
         if(Reflect.hasField(val, "actions")) {
+
+            var level = Std.parseInt(val.actions);
             
-            if(val.actions.indexOf(Constants.ACTION_DELETE) > -1) {
+            if(level >= Constants.DELETE) {
                 deleteButton.visible = true;
             }
             
-            if(val.actions.indexOf(Constants.ACTION_EDIT) > -1) {
+            if(level >= Constants.ADD_EDIT) {
                 editButton.visible = true;
+            }
+
+            if(level >= Constants.QUANTITY) {
+                addButton.visible = true;
+                removeButton.visible = true;
             }
         }
     }
@@ -94,7 +112,15 @@ class ItemListActionRenderer extends PriGridCellRenderer {
     }
 
     private function deleteEvent(e: PriEvent): Void {
+        Access.getAccessTarget().deleteProduct(Utils.getToken(), this.item);
+    }
 
+    private function addQuantityEvent(e: PriEvent): Void {
+        Access.getAccessTarget().addRemoveQuantity(Utils.getToken(), this.item, 1);
+    }
+
+    private function removeQuantityEvent(e: PriEvent): Void {
+        Access.getAccessTarget().addRemoveQuantity(Utils.getToken(), this.item, -1);
     }
 
 }

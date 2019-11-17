@@ -1,5 +1,6 @@
 package client.views;
 
+import js.html.ImageBitmapRenderingContext;
 import priori.event.PriTapEvent;
 import priori.bootstrap.type.PriBSImageStyle;
 import priori.bootstrap.PriBSImage;
@@ -49,5 +50,11 @@ class Toolbuttons extends PriGroup {
         imageAdd.x = imageRefresh.x - 12 - imageAdd.width;
 
     }
+
+    public function addButtonShow(lev: Int) {
+        imageAdd.visible = false;
+        if(lev >= Constants.ADD_EDIT)
+            imageAdd.visible = true;
+    } 
 
 }

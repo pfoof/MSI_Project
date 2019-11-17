@@ -11,7 +11,7 @@ class Constants {
 
     public static inline function getTimestamp(): Float { return new js.lib.Date().getTime(); }
 
-    public static final SERVER_DEST = "https://myhost:8000";
+    public static final SERVER_DEST = "https://auree-NUC7i5BNH.local:8000";
 
     public static final TOKEN_HEADER = "X-Auth-Token";
 
@@ -26,4 +26,9 @@ class Constants {
 
     public static final ACTION_EDIT = "edit";
     public static final ACTION_DELETE = "delete";
+    
+    public static final QUANTITY = 1;
+    public static final ADD_EDIT = 2;
+    public static final DELETE = 4;
+
 }

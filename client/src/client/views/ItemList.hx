@@ -107,32 +107,60 @@ class ItemList extends PriGroupWithState {
 
     private function accessCallback(signal: Signal, data: Dynamic): Void {
         switch(signal) {
-            case Add | Delete | Quantity | Edit: {
+            case Add | Quantity | Edit: {
                 refresh();
             }
 
+            case Delete: {
+                if(
+                    Reflect.hasField(data, "e")
+                    && (data.e.state() == "resolved" || data.e.state() == "success")
+                    && (data.e.status >= 200 && data.e.status < 300)
+                ) {
+                    refresh();
+                    trace("Deleted!");
+                } else {
+                    trace("Delete has statusCode != 200");
+                    var _statusCode = -1;
+                    var _state = "...";
+                    var _data = "";
+                    if(Reflect.hasField(data, "e")) {
+                        _statusCode = data.e.status;
+                        _state = data.e.state();
+                    }
+                    if(Reflect.hasField(data, "data") && data.data != null)
+                        if(data.data.length > 100)
+                            _data = data.data.substr(0,100);
+                        else
+                            _data = data.data;
+                    showError("Error ("+_statusCode+"/"+_state+"): "+_data);
+                }
+            }
+
             case Retrieve: {
-                if(Reflect.hasField(data, "e") &&
-                    (data.e.state() == "resolved" || data.e.state() == "success") &&
-                        (data.e.status >= 200 && data.e.status < 300)) {
-                            onLoad(data);
-                            trace("Loaded!");
-                        } else {
-                            trace("Retrieve has statusCode != 200");
-                            var _statusCode = -1;
-                            var _state = "...";
-                            var _data = "";
-                            if(Reflect.hasField(data, "e")) {
-                                _statusCode = data.e.status;
-                                _state = data.e.state();
-                            }
-                            if(Reflect.hasField(data, "data") && data.data != null)
-                                if(data.data.length > 100)
-                                    _data = data.data.substr(0,100);
-                                else
-                                    _data = data.data;
-                            showError("Error ("+_statusCode+"/"+_state+"): "+_data);
-                        }
+                if(
+                    Reflect.hasField(data, "e")
+                    && (data.e.state() == "resolved" || data.e.state() == "success")
+                    && (data.e.status >= 200 && data.e.status < 300)
+                ) {
+                    onLoad(data);
+                    trace("Loaded!");
+                } else {
+                    trace("Retrieve has statusCode != 200");
+                    var _statusCode = -1;
+                    var _state = "...";
+                    var _data = "";
+                    if(Reflect.hasField(data, "e")) {
+                        _statusCode = data.e.status;
+                        _state = data.e.state();
+                    }
+                    if(Reflect.hasField(data, "data") && data.data != null)
+                        if(data.data.length > 100)
+                            _data = data.data.substr(0,100);
+                        else
+                            _data = data.data;
+                    showError("Error ("+_statusCode+"/"+_state+"): "+_data);
+                }
             }
 
             default: {}
@@ -174,6 +202,9 @@ class ItemList extends PriGroupWithState {
     }
 
     public function onLoad(e: Dynamic): Void {
+        var lev = Utils.getUserLevel();
+        toolbuttons.addButtonShow(lev);
+        if(lev < 0) return;
         var ddata = cast(Json.parse(e.data), Array<Dynamic>);
         var newData = new Array<Dynamic>();
         for(i in ddata) {
@@ -183,7 +214,7 @@ class ItemList extends PriGroupWithState {
                 name: i.name,
                 quantity: i.quantity,
                 price: i.price,
-                actions: ["edit"]};
+                actions: lev};
             Reflect.setField(i, "actions", actions);
             newData.push(i);
         }
