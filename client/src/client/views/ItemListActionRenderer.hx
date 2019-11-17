@@ -23,12 +23,14 @@ class ItemListActionRenderer extends PriGridCellRenderer {
         super.setup();
         layout = new PriHorizontalLayout();
         layout.alignType = CENTER;
+        
         editButton = new PriBSImage();
         editButton.load("images/edit.png");
         deleteButton = new PriBSImage();
         deleteButton.load("images/delete.png");
         editButton.addEventListener(PriTapEvent.TAP, editEvent);
         deleteButton.addEventListener(PriTapEvent.TAP, deleteEvent);
+
         layout.addChildList([editButton, deleteButton]);
         this.addChild(layout);
         update();

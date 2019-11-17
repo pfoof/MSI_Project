@@ -27,6 +27,7 @@ class ItemList extends PriGroupWithState {
     private var refreshButton: PriBSFormButton;
     private var toolbuttons: Toolbuttons;
     private var errorLabel: PriBSLabel;
+    private var warningLabel: PriBSLabel;
 
     public function new() {
         super();
@@ -39,6 +40,10 @@ class ItemList extends PriGroupWithState {
         errorLabel.text = "";
         errorLabel.context = PriBSContextualType.DANGER;
         errorLabel.visible = false;
+        warningLabel = new PriBSLabel();
+        warningLabel.text = "";
+        warningLabel.visible = false;
+        warningLabel.context = PriBSContextualType.WARNING;
 
         toolbuttons = new Toolbuttons();
         refreshButton = new PriBSFormButton();
@@ -74,6 +79,7 @@ class ItemList extends PriGroupWithState {
         addChild(toolbuttons);
         
         addChild(errorLabel);
+        addChild(warningLabel);
 
         Access.registerCallback(accessCallback);
 
@@ -91,6 +97,12 @@ class ItemList extends PriGroupWithState {
         errorTimeout = Browser.window.setTimeout(function() {
             errorLabel.visible = false;
         }, 3500);
+    }
+
+    private function showWarning(s: String) {
+        warningLabel.text = s;
+        warningLabel.visible = true;
+        validate();
     }
 
     private function accessCallback(signal: Signal, data: Dynamic): Void {
@@ -185,6 +197,14 @@ class ItemList extends PriGroupWithState {
             var log = Log.getLog();
             log.logQuantity(Constants.getTimestamp(), item, change);
             Log.saveLog(log);
+        }
+    }
+
+    override function reset(?data:Map<String, String>) {
+        super.reset(data);
+        warningLabel.visible = false;
+        if(data != null && data.exists("warn")) {
+            showWarning(data.get("warn"));
         }
     }
 

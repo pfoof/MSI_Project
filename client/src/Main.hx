@@ -1,5 +1,7 @@
 package ;
 
+import js.html.XMLHttpRequestResponseType;
+import js.jquery.JQuery;
 import js.Browser;
 import priori.assets.AssetImage;
 import priori.assets.AssetManager;
@@ -43,8 +45,25 @@ class Main extends PriApp {
         var token = Utils.getToken();
         if(token == null || token.length <= 1 || token == "undefined" || token == null || token == "null") {
             ContentManager.getManager().switchContent(LoginForm.NAME);
-        } else 
-            ContentManager.getManager().switchContent(ItemList.NAME);
+        } else {
+            if(Utils.ping()) {
+                var _headers = {};
+                Reflect.setField(_headers, Constants.TOKEN_HEADER, token);
+                var xhr = JQuery.ajax(Constants.SERVER_DEST+"/authorize", {
+                    headers: _headers,
+                    method: "GET",
+                    async: false
+                });
+                if(xhr.status < 100 || xhr.status >= 400) {
+                    Utils.logout();
+                } else {
+                    if(xhr.responseType == XMLHttpRequestResponseType.JSON && Reflect.hasField(xhr.response, "level"))
+                        Browser.getLocalStorage().setItem("level", xhr.response.level);
+                    ContentManager.getManager().switchContent(ItemList.NAME);
+                }
+            } else
+                ContentManager.getManager().switchContent(ItemList.NAME, ["warn" => "Offline mode!"]);
+        }
     }
 
     override private function paint():Void {

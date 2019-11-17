@@ -409,6 +409,7 @@ func main() {
 	http.Handle("/", rtr)
 
 	rtr.HandleFunc("/", listItems)
+	rtr.HandleFunc("/authorize", httpauth)
 	rtr.HandleFunc("/callback/{prov}", callback)
 	rtr.HandleFunc("/login/{prov}", login)
 	rtr.HandleFunc("/{itemid}", item)
@@ -577,22 +578,27 @@ func listItems(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Access-Control-Allow-Headers", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "*")
+		break
 
 	case "POST":
 		httpadd(w, r)
+		break
 
 	case "GET":
 		fmt.Printf("GET httplist\n")
 		httplist(w, r)
+		break
 
 	case "PUT":
 		httpupdate(w, r)
+		break
 
 	case "HEAD":
 		length := control.ListItems(nil)
 		w.Header().Add("Access-Control-Allow-Origin", "*")
 		w.Header().Add("Content-Type", "application/json")
 		w.Header().Add("Content-Length", strconv.Itoa(length))
+		break
 
 	default:
 		w.Header().Add("Access-Control-Allow-Origin", "*")
@@ -609,13 +615,46 @@ func item(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("Access-Control-Allow-Headers", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "*")
+		break
 
 	case "DELETE":
 		httpdelete(w, r)
+		break
 
 	case "PUT":
 		httpchange(w, r)
+		break
 
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		w.Header().Add("Access-Control-Allow-Origin", "*")
+	}
+}
+
+func httpauth(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "OPTIONS":
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "*")
+		break
+
+	case "GET":
+		w.Header().Add("Access-Control-Allow-Origin", "*")
+		w.Header().Add("Content-type", "application/json")
+		token := r.Header.Get("X-Auth-Token")
+		uid := checkToken(token)
+		if uid <= 0 {
+			w.WriteHeader(http.StatusUnauthorized)
+			fmt.Println("Authorize: Unauthorized")
+			return
+		}
+
+		level := getUserLevel(uid)
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(fmt.Sprintf("{\"level\":\"%d\"}", level)))
+		break
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Header().Add("Access-Control-Allow-Origin", "*")
