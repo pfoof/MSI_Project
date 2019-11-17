@@ -31,7 +31,7 @@ class Remote extends Access {
     }
 
 
-    private function request(data: Dynamic, method: String, ?headers: Map<String, String>, ?callback: (Signal, Dynamic)->Void, ?signal: Signal) {
+    private function request(data: Dynamic, method: String, ?headers: Map<String, String>, ?callback: (Signal, Dynamic)->Void, ?signal: Signal, ?customURL: String) {
         var _headers = {}
         if(headers != null) {
             for(k => v in headers) {
@@ -41,11 +41,14 @@ class Remote extends Access {
         
         JQuery.support.cors = true;
 
+        if(customURL == null)
+            customURL = "";
+
         if(!Std.is(data, String))
             data = Json.stringify(data);
 
         JQuery.ajax({
-            url: Constants.SERVER_DEST,
+            url: Constants.SERVER_DEST+customURL,
             headers: _headers,
             contentType: "application/json",
             async: true,
@@ -103,7 +106,7 @@ class Remote extends Access {
             item: item
         });
         var headers = [Constants.TOKEN_HEADER => token];
-        request(data, "DELETE", headers, triggerBroadcasts, Signal.Delete);
+        request(data, "DELETE", headers, triggerBroadcasts, Signal.Delete, "/"+item);
     }
 
     override public function addRemoveQuantity(token: String, item: Int, delta: Int, ?time: Float) {
@@ -112,7 +115,7 @@ class Remote extends Access {
             change: delta
         });
         var headers = [Constants.TOKEN_HEADER => token];
-        request(data, "PUT", headers, triggerBroadcasts, Signal.Quantity);
+        request(data, "PUT", headers, triggerBroadcasts, Signal.Quantity, "/"+item);
 
     }
 

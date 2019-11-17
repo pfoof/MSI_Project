@@ -1,5 +1,6 @@
 package ;
 
+import haxe.Json;
 import js.html.XMLHttpRequestResponseType;
 import js.jquery.JQuery;
 import js.Browser;
@@ -57,8 +58,8 @@ class Main extends PriApp {
                 if(xhr.status < 100 || xhr.status >= 400) {
                     Utils.logout();
                 } else {
-                    if(xhr.responseType == XMLHttpRequestResponseType.JSON && Reflect.hasField(xhr.response, "level"))
-                        Browser.getLocalStorage().setItem("level", xhr.response.level);
+                    var x = Json.parse(xhr.responseText);
+                    Browser.getLocalStorage().setItem("level", x.level);
                     ContentManager.getManager().switchContent(ItemList.NAME);
                 }
             } else

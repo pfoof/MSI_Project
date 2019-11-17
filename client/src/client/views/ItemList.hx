@@ -57,7 +57,7 @@ class ItemList extends PriGroupWithState {
             new PriGridColumn("Product", "name", PriGridColumnSizeType.FIT, false),
             new PriGridColumn("Price", "price", PriGridColumnSizeType.FIXED, 54, true),
             new PriGridColumn("Quantity", "quantity", PriGridColumnSizeType.FIXED, 48, true),
-            new PriGridColumn("", "actions", ItemListActionRenderer, PriGridColumnSizeType.FIXED, 64, false)
+            new PriGridColumn("", "actions", ItemListActionRenderer, PriGridColumnSizeType.FIXED, 128, false)
         ];
         list.data = [{
             item: 100,

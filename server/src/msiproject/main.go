@@ -41,7 +41,8 @@ type Item struct {
 }
 
 type Quantity struct {
-	Delta int `json:"delta"`
+	Item  int `json:"item"`
+	Delta int `json:"change"`
 }
 
 type Email struct {
@@ -163,7 +164,7 @@ func update(item *Item) int {
 }
 
 func quantity(item int, delta int) int {
-	r, err := db.Exec("update items set quantity = max(0, quantity + ?) where id = ?", delta, item)
+	r, err := db.Exec("INSERT INTO deltas (item, delta) VALUES (?, ?)", item, delta)
 	if err != nil {
 		fmt.Println(err.Error())
 		fmt.Println("<qun> Error executing")
@@ -204,6 +205,20 @@ func httplist(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		subrows, err := db.Prepare("SELECT COALESCE(SUM(delta),0) FROM deltas WHERE item = ?")
+		if err != nil {
+			fmt.Println(err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		var delta int64
+		err = subrows.QueryRow(item.Item).Scan(&delta)
+		if err != nil {
+			fmt.Println(err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		item.Quantity += int(delta)
 		items = append(items, item)
 	}
 
