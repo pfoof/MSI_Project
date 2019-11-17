@@ -505,7 +505,7 @@ func callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("https://auree-NUC7i5BNH.local:5500/#token=%s", token), 301)
+	http.Redirect(w, r, fmt.Sprintf("https://auree-NUC7i5BNH.local/#token=%s", token), 301)
 }
 
 func newToken(email string) string {

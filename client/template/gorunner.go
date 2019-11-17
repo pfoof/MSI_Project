@@ -9,7 +9,8 @@ import (
 func main() {
 	http.HandleFunc("/", serve)
 
-	http.ListenAndServeTLS(":5500", "../../server/server.crt", "../../server/server.key", nil)
+	http.ListenAndServe(":80", nil)
+	http.ListenAndServeTLS(":443", "../../server/server.crt", "../../server/server.key", nil)
 }
 
 func serve(w http.ResponseWriter, r *http.Request) {
