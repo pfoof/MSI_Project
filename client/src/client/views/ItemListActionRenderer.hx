@@ -64,6 +64,7 @@ class ItemListActionRenderer extends PriGridCellRenderer {
         deleteButton.visible = false;
 
         if(Reflect.hasField(val, "actions")) {
+            
             if(val.actions.indexOf(Constants.ACTION_DELETE) > -1) {
                 deleteButton.visible = true;
             }

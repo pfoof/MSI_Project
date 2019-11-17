@@ -1,0 +1,39 @@
+
+.priori_stylebase {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
+    -webkit-user-drag: none;
+    user-drag: none;
+
+    font-size:14px;
+
+    margin:0px;
+    padding:0px;
+    position:absolute;
+}
+
+input, button, label, select, textarea {
+    background-color:transparent;
+    border:transparent;
+    color:inherit;
+    font-family:inherit;
+    font-variant:inherit;
+    font-style:inherit;
+    font-weight:inherit;
+    text-align:inherit;
+    font-size:inherit;
+}
+
+* {
+    -webkit-tap-highlight-color: transparent;
+    outline: none !important;
+}
+
+*:focus {
+    outline :none !important;
+}

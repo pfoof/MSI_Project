@@ -19,5 +19,5 @@
     "src"
   ],
 
-  "output" : "build"
+  "output" : "msiclient/www"
 }
