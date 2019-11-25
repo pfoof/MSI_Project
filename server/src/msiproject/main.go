@@ -417,7 +417,7 @@ func main() {
 
 	gomniauth.SetSecurityKey(os.Getenv("OAUTH_SECURITY_KEY"))
 	gomniauth.WithProviders(
-		github.New(os.Getenv("GITHUB_CLIENT_ID"), os.Getenv("GITHUB_SECRET_KEY"), "https://auree-NUC7i5BNH.local:8000/callback/github"),
+		github.New(os.Getenv("GITHUB_CLIENT_ID"), os.Getenv("GITHUB_SECRET_KEY"), fmt.Sprintf("https://%s.local:8000/callback/github", os.Getenv("MSI_HOSTNAME"))),
 	)
 
 	rtr := mux.NewRouter()
@@ -520,7 +520,7 @@ func callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("https://auree-NUC7i5BNH.local/#token=%s", token), 301)
+	http.Redirect(w, r, fmt.Sprintf("https://%s.local/#token=%s", os.Getenv("MSI_HOSTNAME"), token), 301)
 }
 
 func newToken(email string) string {
