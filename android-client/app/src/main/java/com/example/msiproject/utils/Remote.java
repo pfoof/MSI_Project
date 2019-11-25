@@ -36,6 +36,13 @@ public class Remote {
                 if( r != null )
                     r.publishResult(data, sig);
         }
+
+        @Override
+        public void publishProblem(Exception e) {
+            for(Request.IRequestResult r : requestResults)
+                if( r != null )
+                    r.publishProblem(e);
+        }
     };
 
 

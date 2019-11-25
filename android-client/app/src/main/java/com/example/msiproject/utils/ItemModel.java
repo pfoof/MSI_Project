@@ -5,15 +5,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ItemModel {
 
-    @JsonProperty("id")
-    public int id;
+    @JsonProperty("item")
+    public String id;
     @JsonProperty("name")
     public String name;
     @JsonProperty("prod")
     public String prod;
     @JsonProperty("quantity")
-    public int quantity;
+    public String quantity;
     @JsonProperty("price")
-    public float price;
+    public String price;
 
 }

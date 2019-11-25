@@ -4,14 +4,20 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
+import android.widget.Toast
 import com.example.msiproject.utils.*
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.android.synthetic.main.activity_main.*
+import java.lang.Exception
 
 class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResult {
+
+    override fun publishProblem(e: Exception?) {
+        runOnUiThread { Toast.makeText(this, e?.message, Toast.LENGTH_SHORT).show() }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,7 +32,7 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
 
     fun refresh(v: View) {
         v.isEnabled = false
-        Request(Constants.SERVER_DEST+"/", "GET", "", null, this, Request.Signal.Fetch).execute()
+        Request(Constants.SERVER_DEST+"/", "GET", "{}", mapOf(Constants.TOKEN_HEADER to "D2096F0CAAF5E7C425CBCBF967DDB2619A29C0530662801D95B063B3B6EE2759EA3A46D4F3274BEFAB36B5AD417A129C1E0C3DD7FCBF56702EB3B39EA5102FE8"), this, Request.Signal.Fetch).execute()
     }
 
     override fun publishResult(data: Request.RequestResult?, sig: Request.Signal?) {
@@ -36,7 +42,7 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
                 if(data != null && data.resultCode < 300 && data.resultCode >= 200) {
                     val objectMapper = ObjectMapper()
                     val items: List<ItemModel> = objectMapper.readValue(data.data)
-                    populateList(items.toTypedArray())
+                    runOnUiThread { populateList(items.toTypedArray()) }
                 }
             }
         }
@@ -55,14 +61,17 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
     }
 
     override fun canDelete(): Boolean {
+        return false
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun canEdit(): Boolean {
+        return false
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun canQuantity(): Boolean {
+        return true
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }

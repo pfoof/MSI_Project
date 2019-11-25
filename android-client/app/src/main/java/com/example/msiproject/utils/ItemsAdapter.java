@@ -57,7 +57,7 @@ public class ItemsAdapter extends ArrayAdapter<ItemModel> {
         ImageButton btnAdd = (ImageButton) l.findViewById(R.id.btnAdd);
         ImageButton btnRemove = (ImageButton) l.findViewById(R.id.btnRemove);
 
-        final int idCopy = o.id;
+        final String idCopy = new String(o.id);
 
         if(text_name != null)
             text_name.setText(o.name);
@@ -66,10 +66,12 @@ public class ItemsAdapter extends ArrayAdapter<ItemModel> {
             text_prod.setText(o.prod);
 
         if(text_price != null)
-            text_price.setText(String.format("Price: %.2f", o.price));
+            text_price.setText(String.format("Price: %s", o.price));
+            //text_price.setText(String.format("Price: %.2f", o.price));
 
         if(text_quantity != null)
-            text_quantity.setText(String.format("Quantity: %d", o.quantity));
+            text_quantity.setText(String.format("Quantity: %s", o.quantity));
+            //text_quantity.setText(String.format("Quantity: %d", o.quantity));
 
         if(btnEdit != null) {
             btnEdit.setEnabled(action != null && action.canEdit());
@@ -77,7 +79,7 @@ public class ItemsAdapter extends ArrayAdapter<ItemModel> {
                 btnEdit.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        action.editItem(idCopy);
+                        action.editItem(Integer.parseInt(idCopy));
                     }
                 });
         }
@@ -88,7 +90,7 @@ public class ItemsAdapter extends ArrayAdapter<ItemModel> {
                 btnDelete.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        action.deleteItem(idCopy);
+                        action.deleteItem(Integer.parseInt(idCopy));
                     }
                 });
         }
@@ -99,7 +101,7 @@ public class ItemsAdapter extends ArrayAdapter<ItemModel> {
                 btnAdd.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        action.quantity(idCopy, 1);
+                        action.quantity(Integer.parseInt(idCopy), 1);
                     }
                 });
         }
@@ -110,7 +112,7 @@ public class ItemsAdapter extends ArrayAdapter<ItemModel> {
                 btnRemove.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        action.quantity(idCopy, -1);
+                        action.quantity(Integer.parseInt(idCopy), -1);
                     }
                 });
         }

@@ -1,6 +1,7 @@
 package com.example.msiproject.utils;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -41,7 +42,9 @@ public class Request extends AsyncTask<Object, Integer, Object> {
     }
 
     public RequestResult doRequestSync() {
+        Log.d("Request", "Starting request to "+url.toString());
         try {
+            HttpsTrustManager.allowAllSSL();
             HttpURLConnection conn = (HttpsURLConnection)url.openConnection();
             conn.setConnectTimeout(5000);
             conn.setReadTimeout(5000);
@@ -53,16 +56,23 @@ public class Request extends AsyncTask<Object, Integer, Object> {
                 }
 
             conn.setDoInput(true);
-            conn.setDoOutput(true);
+            conn.setDoOutput(!method.equalsIgnoreCase("GET"));
 
-            OutputStream os = conn.getOutputStream();
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
-            writer.write(params);
-            writer.flush();
-            writer.close();
-            os.close();
+            Log.d("Request", "Output stream");
+
+            if(!method.equalsIgnoreCase("GET")) {
+                OutputStream os = conn.getOutputStream();
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
+                writer.write(params);
+                writer.write("\n\n");
+                writer.flush();
+                writer.close();
+                os.close();
+            }
 
             responseCode = conn.getResponseCode();
+            Log.d("Request", "Response: "+responseCode);
+
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
             StringBuffer buff = new StringBuffer("");
@@ -74,6 +84,8 @@ public class Request extends AsyncTask<Object, Integer, Object> {
 
             return new RequestResult(responseCode, buff.toString());
         } catch (IOException e) {
+            Log.e("Request", e.getMessage());
+            if(requestListener != null) requestListener.publishProblem(e);
             return null;
         }
     }
@@ -101,6 +113,7 @@ public class Request extends AsyncTask<Object, Integer, Object> {
 
     public interface IRequestResult {
         void publishResult(RequestResult data, Signal sig);
+        void publishProblem(Exception e);
     }
 
     public enum Signal {
