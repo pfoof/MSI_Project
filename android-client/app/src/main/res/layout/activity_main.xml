@@ -19,7 +19,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="right|bottom"
         android:layout_margin="32dp"
-        android:src="@android:drawable/arrow_up_float"
+        android:background="@color/colorRefresh"
+        android:src="@drawable/ic_refresh_white_24dp"
         android:id="@+id/refreshBtn" />
 
     <FrameLayout

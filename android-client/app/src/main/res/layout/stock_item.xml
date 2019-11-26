@@ -45,6 +45,7 @@
     <GridLayout
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:layout_marginHorizontal="8dp"
         android:layout_weight="0.33"
         android:columnCount="2"
         android:rowCount="2">
@@ -52,16 +53,20 @@
         <ImageButton
             android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:layout_columnWeight="10" android:layout_rowWeight="10"
-            android:id="@+id/btnEdit" android:src="@drawable/edit"/>
+            android:id="@+id/btnEdit" android:src="@drawable/edit"
+            android:background="@color/colorNeutral"/>
         <ImageButton android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:layout_columnWeight="10" android:layout_rowWeight="10"
-            android:id="@+id/btnDelete" android:src="@drawable/delete"/>
+            android:id="@+id/btnDelete" android:src="@drawable/delete"
+            android:background="@color/colorDel" />
         <ImageButton android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:layout_columnWeight="10" android:layout_rowWeight="10"
-            android:id="@+id/btnRemove" android:src="@drawable/remove"/>
+            android:id="@+id/btnRemove" android:src="@drawable/remove"
+            android:background="@color/colorRem" />
         <ImageButton android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:layout_columnWeight="10" android:layout_rowWeight="10"
-            android:id="@+id/btnAdd" android:src="@drawable/add_small"/>
+            android:id="@+id/btnAdd" android:src="@drawable/add_small"
+            android:background="@color/colorAdd" />
 
     </GridLayout>
 

@@ -46,7 +46,7 @@ public class ItemsAdapter extends ArrayAdapter<ItemModel> {
         return layout;
     }
 
-    private void populate(LinearLayout l, ItemModel o, final IStockItemAction action) {
+    private void populate(LinearLayout l, final ItemModel o, final IStockItemAction action) {
         TextView text_name = (TextView) l.findViewById(R.id.text_name);
         TextView text_prod = (TextView) l.findViewById(R.id.text_prod);
         TextView text_price = (TextView) l.findViewById(R.id.text_price);
@@ -79,7 +79,7 @@ public class ItemsAdapter extends ArrayAdapter<ItemModel> {
                 btnEdit.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        action.editItem(Integer.parseInt(idCopy));
+                        action.editItem(Integer.parseInt(idCopy), o);
                     }
                 });
         }
