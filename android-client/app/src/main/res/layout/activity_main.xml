@@ -9,7 +9,8 @@
     <ListView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/list">
+        android:id="@+id/list"
+        android:layout_marginVertical="24dp">
 
     </ListView>
 
@@ -20,5 +21,30 @@
         android:layout_margin="32dp"
         android:src="@android:drawable/arrow_up_float"
         android:id="@+id/refreshBtn" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/offlineMode"
+        android:background="#FFFFFFFF"
+        android:padding="2dp"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Offline mode"
+            android:layout_gravity="left|center_vertical"
+            android:layout_marginHorizontal="16dp"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Retry"
+            android:id="@+id/offlineRetry"
+            android:layout_gravity="right|center_vertical"/>
+
+    </FrameLayout>
 
 </FrameLayout>

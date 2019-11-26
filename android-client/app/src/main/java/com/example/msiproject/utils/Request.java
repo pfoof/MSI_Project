@@ -121,7 +121,8 @@ public class Request extends AsyncTask<Object, Integer, Object> {
         Edit,
         Fetch,
         Delete,
-        Quantity
+        Quantity,
+        Authorize
     }
 
     public class RequestResult {

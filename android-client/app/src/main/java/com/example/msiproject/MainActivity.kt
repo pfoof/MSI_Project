@@ -1,6 +1,7 @@
 package com.example.msiproject
 
 import android.content.Intent
+import android.os.AsyncTask
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -20,10 +21,47 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
         runOnUiThread { Toast.makeText(this, e?.message, Toast.LENGTH_SHORT).show() }
     }
 
+    var isOffline: Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         refreshBtn.setOnClickListener{refresh(it)}
+
+        isOffline = intent.getBooleanExtra("offline", false)
+        offlineRetry.setOnClickListener {
+            offlineRetry.isEnabled = false
+            retryOffline()
+        }
+
+        setOfflineMode()
+
+    }
+
+    private fun setOfflineMode() {
+        if(isOffline) {
+            offlineMode.visibility = View.VISIBLE
+            offlineRetry.isEnabled = true
+        } else {
+            offlineMode.visibility = View.GONE
+        }
+    }
+
+    private fun retryOffline() {
+        object : AsyncTask<Void?, Void?, Void?>() {
+            override fun doInBackground(vararg params: Void?): Void? {
+                if(Remote.ping()) {
+                    isOffline = false
+                }
+                return null
+            }
+
+            override fun onPostExecute(result: Void?) {
+                runOnUiThread {
+                    setOfflineMode()
+                }
+            }
+        }.execute()
     }
 
     fun populateList(data: Array<ItemModel>) {
