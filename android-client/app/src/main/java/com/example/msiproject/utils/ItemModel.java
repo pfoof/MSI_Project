@@ -1,5 +1,7 @@
 package com.example.msiproject.utils;
 
+import android.os.Bundle;
+
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -15,5 +17,15 @@ public class ItemModel {
     public String quantity;
     @JsonProperty("price")
     public String price;
+
+    public Bundle asBundle() {
+        Bundle bun = new Bundle();
+        bun.putString("item", id);
+        bun.putString("name", this.name);
+        bun.putString("prod", prod);
+        bun.putString("quantity", quantity);
+        bun.putString("price", price);
+        return bun;
+    }
 
 }

@@ -1,5 +1,6 @@
 package com.example.msiproject
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -32,7 +33,7 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
 
     fun refresh(v: View) {
         v.isEnabled = false
-        Request(Constants.SERVER_DEST+"/", "GET", "{}", mapOf(Constants.TOKEN_HEADER to "D2096F0CAAF5E7C425CBCBF967DDB2619A29C0530662801D95B063B3B6EE2759EA3A46D4F3274BEFAB36B5AD417A129C1E0C3DD7FCBF56702EB3B39EA5102FE8"), this, Request.Signal.Fetch).execute()
+        Request(Constants.SERVER_DEST+"/", "GET", "{}", mapOf(Constants.TOKEN_HEADER to Constants.TEST_TOKEN), this, Request.Signal.Fetch).execute()
     }
 
     override fun publishResult(data: Request.RequestResult?, sig: Request.Signal?) {
@@ -45,19 +46,45 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
                     runOnUiThread { populateList(items.toTypedArray()) }
                 }
             }
+
+            Request.Signal.Quantity, Request.Signal.Delete, Request.Signal.Add, Request.Signal.Edit -> {
+                if(data != null && data.resultCode < 300 && data.resultCode >= 200) {
+                    runOnUiThread { if(refreshBtn.isEnabled) refresh(refreshBtn) }
+                }
+            }
+
+
         }
     }
 
     override fun deleteItem(id: Int) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        Request(
+            Constants.SERVER_DEST+"/"+id,
+            "DELETE",
+            "",
+            mapOf(Constants.TOKEN_HEADER to Constants.TEST_TOKEN),
+            this,
+            Request.Signal.Delete
+        ).execute()
     }
 
-    override fun editItem(id: Int) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun editItem(id: Int, model: ItemModel?) {
+        val intent = Intent(this, AddEditActivity::class.java)
+        if(model != null) {
+            intent.putExtras(model.asBundle())
+        }
+        startActivity(intent)
     }
 
     override fun quantity(id: Int, delta: Int) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        Request(
+            Constants.SERVER_DEST+"/"+id,
+            "PUT",
+            "{\"delta\":\""+delta+"\"}",
+            mapOf(Constants.TOKEN_HEADER to Constants.TEST_TOKEN),
+            this,
+            Request.Signal.Quantity
+        ).execute()
     }
 
     override fun canDelete(): Boolean {

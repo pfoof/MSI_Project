@@ -56,11 +56,11 @@ public class Request extends AsyncTask<Object, Integer, Object> {
                 }
 
             conn.setDoInput(true);
-            conn.setDoOutput(!method.equalsIgnoreCase("GET"));
+            conn.setDoOutput(!method.equalsIgnoreCase("GET") && !method.equalsIgnoreCase("DELETE"));
 
             Log.d("Request", "Output stream");
 
-            if(!method.equalsIgnoreCase("GET")) {
+            if(!method.equalsIgnoreCase("GET") && !method.equalsIgnoreCase("DELETE")) {
                 OutputStream os = conn.getOutputStream();
                 BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, "UTF-8"));
                 writer.write(params);
@@ -120,7 +120,8 @@ public class Request extends AsyncTask<Object, Integer, Object> {
         Add,
         Edit,
         Fetch,
-        Delete
+        Delete,
+        Quantity
     }
 
     public class RequestResult {
