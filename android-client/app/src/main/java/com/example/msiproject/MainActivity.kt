@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import com.example.msiproject.local.SaveItemsLocallyTask
 import com.example.msiproject.utils.*
 import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.core.type.TypeReference
@@ -81,6 +82,7 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
                 if(data != null && data.resultCode < 300 && data.resultCode >= 200) {
                     val objectMapper = ObjectMapper()
                     val items: List<ItemModel> = objectMapper.readValue(data.data)
+                    SaveItemsLocallyTask(items, this).execute()
                     runOnUiThread { populateList(items.toTypedArray()) }
                 }
             }

@@ -2,13 +2,20 @@ package com.example.msiproject.utils;
 
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@Entity(tableName = "items")
 public class ItemModel {
 
+    @PrimaryKey
     @JsonProperty("item")
-    public String id;
+    @NonNull
+    public String id = "0";
     @JsonProperty("name")
     public String name;
     @JsonProperty("prod")
