@@ -129,16 +129,13 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
 
     override fun canDelete(): Boolean {
         return false
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun canEdit(): Boolean {
         return false
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun canQuantity(): Boolean {
         return true
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }

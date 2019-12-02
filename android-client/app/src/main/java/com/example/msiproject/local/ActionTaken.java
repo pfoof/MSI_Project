@@ -21,7 +21,7 @@ enum ActionTaken {
     @TypeConverter
     public static ActionTaken getActionTaken(String val) {
         for(ActionTaken at : values())
-            if(at.code == val)
+            if(at.code.equals(val))
                 return at;
         return null;
     }
