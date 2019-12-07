@@ -24,7 +24,7 @@ class LoginActivity : AppCompatActivity(), Request.IRequestResult {
         if(intent != null && intent.data != null) {
             val d = intent.data
             if(d?.path != null) {
-                val path = d?.path
+                val path = d?.encodedQuery
                 if(path!!.isNotEmpty())
                     login(path)
             }
@@ -46,6 +46,8 @@ class LoginActivity : AppCompatActivity(), Request.IRequestResult {
             validateToken(getToken()!!)
         }
 
+        err.visibility = View.GONE
+
     }
 
     private fun continueToMain(offline: Boolean) {
@@ -60,7 +62,7 @@ class LoginActivity : AppCompatActivity(), Request.IRequestResult {
     private fun invalidateToken() {
         val ed = getSharedPreferences(Constants.USER_PREFS, Context.MODE_PRIVATE).edit()
         ed.remove(Constants.TOKEN_HEADER)
-        ed.apply()
+        ed.commit()
     }
 
     private fun showError(e: String) {
@@ -112,6 +114,8 @@ class LoginActivity : AppCompatActivity(), Request.IRequestResult {
     }
 
     private fun login(token: String) {
-
+        val prefs = getSharedPreferences(Constants.USER_PREFS, Context.MODE_PRIVATE).edit()
+        prefs.putString(Constants.TOKEN_HEADER, token.substringAfter("token="))
+        prefs.commit()
     }
 }
