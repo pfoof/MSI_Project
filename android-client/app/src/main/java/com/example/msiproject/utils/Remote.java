@@ -17,7 +17,7 @@ public class Remote {
 
     public static boolean ping() {
         try {
-            Request.RequestResult res = new Request(Constants.SERVER_DEST + "/", "GET", "", null, null, Request.Signal.Fetch).doRequestSync();
+            RequestResult res = new Request(Constants.SERVER_DEST(null) + "/", "GET", "", null, null, Request.Signal.Fetch).doRequestSync();
             return res != null && res.getResultCode() < 400 && res.getResultCode() >= 200;
         } catch(Exception e) {
             Log.e("ping()", e.getMessage());
@@ -31,7 +31,7 @@ public class Remote {
 
     private static Request.IRequestResult triggerReceivers = new Request.IRequestResult() {
         @Override
-        public void publishResult(Request.RequestResult data, Request.Signal sig) {
+        public void publishResult(RequestResult data, Request.Signal sig) {
             for(Request.IRequestResult r : requestResults)
                 if( r != null )
                     r.publishResult(data, sig);
@@ -49,7 +49,7 @@ public class Remote {
 
     public static void getItems() {
         try {
-            new Request(Constants.SERVER_DEST +"/", "GET", "", null, triggerReceivers, Request.Signal.Fetch).execute();
+            new Request(Constants.SERVER_DEST(null) +"/", "GET", "", null, triggerReceivers, Request.Signal.Fetch).execute();
         } catch (MalformedURLException e) {
             Log.e("getItems()", e.getMessage());
         }
@@ -59,7 +59,7 @@ public class Remote {
 
     public static String getUserLevel(String token) {
         try {
-            URL url = new URL(Constants.SERVER_DEST+"/authorize");
+            URL url = new URL(Constants.SERVER_DEST(null)+"/authorize");
             HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
             if(conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
                 conn.getInputStream();

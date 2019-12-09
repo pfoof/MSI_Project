@@ -1,5 +1,6 @@
 package com.example.msiproject.local;
 
+import androidx.annotation.NonNull;
 import androidx.room.TypeConverter;
 
 enum ActionTaken {
@@ -31,5 +32,11 @@ enum ActionTaken {
         if(at != null)
             return at.code;
         return null;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return code;
     }
 }

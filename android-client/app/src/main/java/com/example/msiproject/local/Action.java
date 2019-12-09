@@ -6,17 +6,28 @@ import androidx.room.PrimaryKey;
 import androidx.room.TypeConverters;
 
 import com.example.msiproject.utils.ItemModel;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.Date;
 
 @Entity(tableName = "actions")
 class Action {
     @PrimaryKey(autoGenerate = true) public int id;
+    @JsonProperty("name")
     public String name;
+    @JsonProperty("prod")
     public String prod;
+    @JsonProperty("price")
     public String price;
+    @JsonProperty("quantity")
     public String quantity;
+    @JsonProperty("item")
     public String item;
+    @JsonProperty("timestamp")
+    public long timestamp = new Date().getTime();
 
     @Nullable
+    @JsonProperty("action")
     @TypeConverters(ActionTaken.class)
     ActionTaken actionTaken;
 
@@ -33,4 +44,5 @@ class Action {
         actionTaken = at;
         return this;
     }
+
 }

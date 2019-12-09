@@ -5,12 +5,12 @@ import android.os.AsyncTask
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
-import android.widget.ArrayAdapter
 import android.widget.Toast
+import com.example.msiproject.local.ChangeQuantityLocallyTask
+import com.example.msiproject.local.LoadItemsFromDBTask
+import com.example.msiproject.local.Local
 import com.example.msiproject.local.SaveItemsLocallyTask
 import com.example.msiproject.utils.*
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.android.synthetic.main.activity_main.*
@@ -32,10 +32,11 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
         isOffline = intent.getBooleanExtra("offline", false)
         offlineRetry.setOnClickListener {
             offlineRetry.isEnabled = false
-            retryOffline()
+            synchronize()
         }
 
         setOfflineMode()
+        synchronize()
 
     }
 
@@ -48,19 +49,28 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
         }
     }
 
-    private fun retryOffline() {
-        object : AsyncTask<Void?, Void?, Void?>() {
+    private fun synchronize() {
+        object: AsyncTask<Void?, Void?, Void?>() {
             override fun doInBackground(vararg params: Void?): Void? {
-                if(Remote.ping()) {
-                    isOffline = false
+                val actions = Local.getActions(this@MainActivity)
+                if(!actions.isEmpty()) {
+                    val om = ObjectMapper()
+                    val str = om.writeValueAsString(actions)
+                    val result = Request(
+                        Constants.SERVER_DEST(null) + "/sync",
+                        "POST",
+                        str,
+                        mapOf(Constants.TOKEN_HEADER to Tokens.getToken(this@MainActivity)),
+                        this@MainActivity,
+                        Request.Signal.Synchronize
+                    ).doRequestSync()
+                    this@MainActivity.publishResult(result, Request.Signal.Synchronize)
                 }
                 return null
             }
 
             override fun onPostExecute(result: Void?) {
-                runOnUiThread {
-                    setOfflineMode()
-                }
+
             }
         }.execute()
     }
@@ -71,11 +81,15 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
     }
 
     fun refresh(v: View) {
+        if(isOffline) {
+            LoadItemsFromDBTask(this, this).execute()
+            return
+        }
         v.isEnabled = false
-        Request(Constants.SERVER_DEST+"/", "GET", "{}", mapOf(Constants.TOKEN_HEADER to Constants.TEST_TOKEN), this, Request.Signal.Fetch).execute()
+        Request(Constants.SERVER_DEST(null)+"/", "GET", "{}", mapOf(Constants.TOKEN_HEADER to Constants.TEST_TOKEN), this, Request.Signal.Fetch).execute()
     }
 
-    override fun publishResult(data: Request.RequestResult?, sig: Request.Signal?) {
+    override fun publishResult(data: RequestResult?, sig: Request.Signal?) {
         when(sig) {
             Request.Signal.Fetch -> {
                 runOnUiThread{refreshBtn.isEnabled = true}
@@ -87,19 +101,24 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
                 }
             }
 
-            Request.Signal.Quantity, Request.Signal.Delete, Request.Signal.Add, Request.Signal.Edit -> {
+            Request.Signal.Synchronize, Request.Signal.Quantity, Request.Signal.Delete, Request.Signal.Add, Request.Signal.Edit -> {
                 if(data != null && data.resultCode < 300 && data.resultCode >= 200) {
                     runOnUiThread { if(refreshBtn.isEnabled) refresh(refreshBtn) }
                 }
-            }
 
+                if(sig == Request.Signal.Synchronize)
+                    runOnUiThread {
+                        isOffline = false
+                        setOfflineMode()
+                    }
+            }
 
         }
     }
 
     override fun deleteItem(id: Int) {
         Request(
-            Constants.SERVER_DEST+"/"+id,
+            Constants.SERVER_DEST(null)+"/"+id,
             "DELETE",
             "",
             mapOf(Constants.TOKEN_HEADER to Constants.TEST_TOKEN),
@@ -116,12 +135,16 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
         startActivity(intent)
     }
 
-    override fun quantity(id: Int, delta: Int) {
+    override fun quantity(id: Int, delta: Int) {/
+        if(isOffline) {
+            ChangeQuantityLocallyTask(this, this, id, delta).execute()
+            return
+        }
         Request(
-            Constants.SERVER_DEST+"/"+id,
+            Constants.SERVER_DEST(null)+"/"+id,
             "PUT",
-            "{\"delta\":\""+delta+"\"}",
-            mapOf(Constants.TOKEN_HEADER to Constants.TEST_TOKEN),
+            "{\"item\":"+id+",\"change\":"+delta+"}",
+            mapOf(Constants.TOKEN_HEADER to Tokens.getToken(this)),
             this,
             Request.Signal.Quantity
         ).execute()

@@ -9,7 +9,7 @@ import java.util.List;
 @Dao
 interface ActionDao {
 
-    @Query("SELECT * FROM actions")
+    @Query("SELECT * FROM actions ORDER BY timestamp ASC")
     List<Action> getAll();
 
     @Insert

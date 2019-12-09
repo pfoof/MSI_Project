@@ -3,21 +3,15 @@ package com.example.msiproject.utils;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
-import java.util.ArrayList;
 import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -86,7 +80,7 @@ public class Request extends AsyncTask<Object, Integer, Object> {
         } catch (IOException e) {
             Log.e("Request", e.getMessage());
             if(requestListener != null) requestListener.publishProblem(e);
-            return null;
+            return new RequestResult(Constants.RESULT_CONNECTION_ERROR, "{}");
         }
     }
 
@@ -122,21 +116,8 @@ public class Request extends AsyncTask<Object, Integer, Object> {
         Fetch,
         Delete,
         Quantity,
-        Authorize
-    }
-
-    public class RequestResult {
-        private String data = "";
-        private int resultCode = -1;
-
-        public RequestResult(int code, String data) {
-            this.data = data;
-            this.resultCode = code;
-        }
-
-        public int getResultCode() {return resultCode;}
-        public String getData() {return data;}
-        public JSONObject getJSON() throws JSONException {return new JSONObject(data);}
+        Authorize,
+        Synchronize
     }
 
 }

@@ -6,6 +6,7 @@ import android.view.View
 import android.widget.Toast
 import com.example.msiproject.utils.Constants
 import com.example.msiproject.utils.Request
+import com.example.msiproject.utils.RequestResult
 import kotlinx.android.synthetic.main.activity_add_edit.*
 import java.lang.Exception
 
@@ -35,7 +36,7 @@ class AddEditActivity : AppCompatActivity(), Request.IRequestResult {
         }
     }
 
-    override fun publishResult(data: Request.RequestResult?, sig: Request.Signal?) {
+    override fun publishResult(data: RequestResult?, sig: Request.Signal?) {
         when(sig) {
             Request.Signal.Edit, Request.Signal.Add -> {
                 if(data != null) {
@@ -85,9 +86,9 @@ class AddEditActivity : AppCompatActivity(), Request.IRequestResult {
 
     private fun sendToServer() {
         if(id <= 0) {
-            Request(Constants.SERVER_DEST+"/", "POST", "", mapOf("Content-Type" to "application/json", Constants.TOKEN_HEADER to Constants.TEST_TOKEN), this, Request.Signal.Add).execute()
+            Request(Constants.SERVER_DEST(null)+"/", "POST", "", mapOf("Content-Type" to "application/json", Constants.TOKEN_HEADER to Constants.TEST_TOKEN), this, Request.Signal.Add).execute()
         } else {
-            Request(Constants.SERVER_DEST+"/", "PUT", "", mapOf("Content-Type" to "application/json", Constants.TOKEN_HEADER to Constants.TEST_TOKEN), this, Request.Signal.Edit).execute()
+            Request(Constants.SERVER_DEST(null)+"/", "PUT", "", mapOf("Content-Type" to "application/json", Constants.TOKEN_HEADER to Constants.TEST_TOKEN), this, Request.Signal.Edit).execute()
         }
     }
 }

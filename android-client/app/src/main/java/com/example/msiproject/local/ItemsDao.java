@@ -20,4 +20,10 @@ interface ItemsDao {
     @Insert
     void insertAll(ItemModel... items);
 
+    @Query("UPDATE items SET quantity = CAST( (CAST(quantity AS INTEGER) + :delta) AS VARCHAR) WHERE id = :id")
+    void quantity(int id, int delta);
+
+    @Query("UPDATE items SET name = :name, prod = :prod, price = :price WHERE id = :id")
+    void edit(int id, String name, String prod, String price);
+
 }

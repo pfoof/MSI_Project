@@ -396,6 +396,7 @@ func httpchange(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Println("Internal error")
 	}
+	fmt.Printf("Changed quantity %d of item %d\n", item.Delta, itemid)
 	w.WriteHeader(ret)
 }
 
@@ -417,7 +418,7 @@ func main() {
 
 	gomniauth.SetSecurityKey(os.Getenv("OAUTH_SECURITY_KEY"))
 	gomniauth.WithProviders(
-		github.New(os.Getenv("GITHUB_CLIENT_ID"), os.Getenv("GITHUB_SECRET_KEY"), fmt.Sprintf("https://%s.local:8000/callback/github", os.Getenv("MSI_HOSTNAME"))),
+		github.New(os.Getenv("GITHUB_CLIENT_ID"), os.Getenv("GITHUB_SECRET_KEY"), fmt.Sprintf("https://%s:8000/callback/github", os.Getenv("MSI_HOSTNAME"))),
 	)
 
 	rtr := mux.NewRouter()
@@ -464,11 +465,14 @@ func callback(w http.ResponseWriter, r *http.Request) {
 	provider, err := gomniauth.Provider(prov)
 	if err != nil {
 		http.Error(w, "Provider unsupported.", http.StatusBadRequest)
+		fmt.Printf("Provider unsupported %s\n", err.Error())
 		return
 	}
 
+	fmt.Printf("Debug: %s\n", r.URL.RawQuery)
 	creds, err := provider.CompleteAuth(objx.MustFromURLQuery(r.URL.RawQuery))
 	if err != nil {
+		fmt.Printf("Error getting credentials %s\n", err.Error())
 		http.Error(w, "Error getting credentials.", http.StatusInternalServerError)
 		return
 	}
@@ -476,12 +480,14 @@ func callback(w http.ResponseWriter, r *http.Request) {
 	client, err := provider.GetClient(creds)
 	if err != nil {
 		http.Error(w, "Error getting authenticated client.", http.StatusInternalServerError)
+		fmt.Printf("Error getting auth user %s\n", err.Error())
 		return
 	}
 
 	resp, err := client.Get("https://api.github.com/user/emails")
 	if err != nil {
 		http.Error(w, "Error asking for emails", http.StatusInternalServerError)
+		fmt.Printf("Error asking for emails %s\n", err.Error())
 		return
 	}
 
@@ -520,7 +526,7 @@ func callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("https://%s.local/#token=%s", os.Getenv("MSI_HOSTNAME"), token), 301)
+	http.Redirect(w, r, fmt.Sprintf("http://%s/?token=%s", os.Getenv("MSI_APPNAME"), token), 301)
 }
 
 func newToken(email string) string {

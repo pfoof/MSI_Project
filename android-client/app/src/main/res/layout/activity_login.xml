@@ -44,6 +44,13 @@
             android:id="@+id/offline"
             android:visibility="gone" />
 
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/serverDest"
+            android:text="https://172.20.10.2:8000"
+            />
+
     </LinearLayout>
 
 </FrameLayout>
