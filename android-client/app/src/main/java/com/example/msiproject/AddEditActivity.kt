@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import com.example.msiproject.local.EditItemLocallyTask
 import com.example.msiproject.utils.*
 import com.fasterxml.jackson.core.JsonProcessingException
 import kotlinx.android.synthetic.main.activity_add_edit.*
@@ -13,6 +14,7 @@ import java.lang.Exception
 class AddEditActivity : AppCompatActivity(), Request.IRequestResult {
 
     var id: Int = -1
+    var isOffline: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -20,6 +22,7 @@ class AddEditActivity : AppCompatActivity(), Request.IRequestResult {
 
         val bun = intent.extras ?: Bundle()
         id = bun.getInt("item", -1)
+        isOffline = bun.getBoolean("offline", false)
 
         inputQuantity.isEnabled = !bun.containsKey("item")
         inputQuantity.setText( ""+bun.getInt("quantity", 1) )
@@ -32,7 +35,10 @@ class AddEditActivity : AppCompatActivity(), Request.IRequestResult {
         cancel.setOnClickListener{ setResult(Constants.ACTIVITY_RESULT_CANCEL); this.finish() }
         save.setOnClickListener{
             showBusy()
-            sendToServer()
+            if(isOffline)
+                sendToLocal()
+            else
+                sendToServer()
         }
     }
 
@@ -83,6 +89,20 @@ class AddEditActivity : AppCompatActivity(), Request.IRequestResult {
         inputProd.isEnabled = true
         inputPrice.isEnabled = true
         progressBar.visibility = View.GONE
+    }
+
+    private fun sendToLocal() {
+        val im = ItemModel()
+        im.name = inputName.text.toString()
+        im.prod = inputProd.text.toString()
+        im.price = inputPrice.text.toString().toFloat()
+        if(id <= 0) {
+            im.quantity = inputQuantity.text.toString().toInt()
+        } else {
+            im.id = id;
+        }
+
+        EditItemLocallyTask(this, this, id, im).execute()
     }
 
     private fun sendToServer() {

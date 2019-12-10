@@ -24,6 +24,9 @@ interface ItemsDao {
     void quantity(int id, int delta);
 
     @Query("UPDATE items SET name = :name, prod = :prod, price = :price WHERE id = :id")
-    void edit(int id, String name, String prod, String price);
+    void edit(int id, String name, String prod, float price);
+
+    @Query("DELETE FROM items WHERE id = :id")
+    void delete(int id);
 
 }

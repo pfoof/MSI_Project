@@ -8,10 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
-import com.example.msiproject.local.ChangeQuantityLocallyTask
-import com.example.msiproject.local.LoadItemsFromDBTask
-import com.example.msiproject.local.Local
-import com.example.msiproject.local.SaveItemsLocallyTask
+import com.example.msiproject.local.*
 import com.example.msiproject.utils.*
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -29,7 +26,12 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        refreshBtn.setOnClickListener{refresh(it)}
+        refreshBtn.setOnClickListener{ refresh(it) }
+
+        if(canEdit())
+            addBtn.show()
+        else
+            addBtn.hide()
 
         isOffline = intent.getBooleanExtra("offline", false)
         offlineRetry.setOnClickListener {
@@ -38,7 +40,15 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
         }
 
         setOfflineMode()
-        synchronize()
+        if(!isOffline)
+            synchronize()
+
+        addBtn.setOnClickListener {
+            val intent = Intent(this, AddEditActivity::class.java)
+            if(isOffline)
+                intent.putExtra("offline", isOffline)
+            startActivityForResult(intent, Constants.ACTIVITY_REQUEST_ADDEDIT)
+        }
 
         userStatus.text = Tokens.getToken(this).substring(0,8) + " - level " + getUserLevel()
 
@@ -50,6 +60,7 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
             offlineRetry.isEnabled = true
         } else {
             offlineMode.visibility = View.GONE
+            offlineRetry.isEnabled = false
         }
     }
 
@@ -94,7 +105,16 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
     }
 
     override fun publishResult(data: RequestResult?, sig: Request.Signal?) {
+
+        //For connection failure -> go offline
+        if(data != null && data.resultCode < -100) {
+            isOffline = true
+            runOnUiThread { setOfflineMode() }
+            return
+        }
+
         when(sig) {
+
             Request.Signal.Fetch -> {
                 runOnUiThread{refreshBtn.isEnabled = true}
                 if(data != null && data.resultCode < 300 && data.resultCode >= 200) {
@@ -121,6 +141,12 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
     }
 
     override fun deleteItem(id: Int) {
+
+        if(isOffline) {
+            DeleteItemLocallyTask(this, this, id).execute()
+            return
+        }
+
         Request(
             Constants.SERVER_DEST(null)+"/"+id,
             "DELETE",
@@ -135,6 +161,8 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
         val intent = Intent(this, AddEditActivity::class.java)
         if(model != null) {
             intent.putExtras(model.asBundle())
+            if(isOffline)
+                intent.putExtra("offline", isOffline)
         }
         startActivityForResult(intent, Constants.ACTIVITY_REQUEST_ADDEDIT)
     }
@@ -144,6 +172,7 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
             ChangeQuantityLocallyTask(this, this, id, delta).execute()
             return
         }
+
         Request(
             Constants.SERVER_DEST(null)+"/"+id,
             "PUT",
