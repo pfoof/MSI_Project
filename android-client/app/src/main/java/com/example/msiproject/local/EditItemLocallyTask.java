@@ -18,7 +18,8 @@ public class EditItemLocallyTask extends LocalActionTask {
     }
 
     private void addItem() {
-        getItemsDb().insertAll(model);
+        long lastid = getItemsDb().insertOne(model.setFromServer(false));
+        model.id = (int)lastid;
         Action action = new Action().fillWith(model).setAction(ActionTaken.ADD);
         getActionDb().insertAll(action);
     }
@@ -28,10 +29,21 @@ public class EditItemLocallyTask extends LocalActionTask {
         getActionDb().insertAll(new Action().fillWith(model).setAction(ActionTaken.EDIT));
     }
 
+    private void updateLocal() {
+        getItemsDb().edit(id, model.name, model.prod, model.price);
+        getActionDb().edit(id, model.name, model.prod, model.price);
+    }
+
     @Override
     public void action() {
         if(id <= 0) addItem();
-        else updateItem();
+        else {
+            ItemModel im = getItemsDb().getItem(id);
+            if(im == null || im.fromServer)
+                updateItem();
+            else
+                updateLocal();
+        }
     }
 
     @Override

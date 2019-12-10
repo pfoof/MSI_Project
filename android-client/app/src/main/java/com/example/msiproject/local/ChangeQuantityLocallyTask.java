@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
 
+import com.example.msiproject.utils.ItemModel;
 import com.example.msiproject.utils.Request;
 import com.example.msiproject.utils.RequestResult;
 
@@ -20,12 +21,16 @@ public class ChangeQuantityLocallyTask extends LocalActionTask {
 
     @Override
     public void action() {
+        ItemModel itemModel = getItemsDb().getItem(id);
         getItemsDb().quantity(id, delta);
-        Action action = new Action();
-        action.actionTaken = ActionTaken.QUANTITY;
-        action.item = id;
-        action.quantity = delta;
-        getActionDb().insertAll(action);
+        if(itemModel == null || itemModel.fromServer) {
+            Action action = new Action().setAction(ActionTaken.QUANTITY);
+            action.item = id;
+            action.quantity = delta;
+            getActionDb().insertAll(action);
+        } else {
+            getActionDb().quantity(id, delta);
+        }
     }
 
     @Override

@@ -17,10 +17,16 @@ public class DeleteItemLocallyTask extends LocalActionTask {
 
     @Override
     public void action() {
-        ItemModel im = new ItemModel();
-        im.id = id;
-        getItemsDb().delete(id);
-        getActionDb().insertAll(new Action().setAction(ActionTaken.DELETE).fillWith(im));
+        ItemModel itemModel = getItemsDb().getItem(id);
+        if(itemModel == null || itemModel.fromServer) {
+            ItemModel im = new ItemModel();
+            im.id = id;
+            getItemsDb().delete(id);
+            getActionDb().insertAll(new Action().setAction(ActionTaken.DELETE).fillWith(im));
+        } else {
+            getItemsDb().delete(id);
+            getActionDb().deleteAllOfItem(id);
+        }
     }
 
     @Override

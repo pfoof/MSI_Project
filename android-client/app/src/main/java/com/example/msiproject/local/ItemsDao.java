@@ -20,7 +20,13 @@ interface ItemsDao {
     @Insert
     void insertAll(ItemModel... items);
 
-    @Query("UPDATE items SET quantity = CAST( (CAST(quantity AS INTEGER) + :delta) AS VARCHAR) WHERE id = :id")
+    @Insert
+    long insertOne(ItemModel item);
+
+    @Query("SELECT * FROM items WHERE id = :id")
+    ItemModel getItem(int id);
+
+    @Query("UPDATE items SET quantity = (quantity + :delta) WHERE id = :id")
     void quantity(int id, int delta);
 
     @Query("UPDATE items SET name = :name, prod = :prod, price = :price WHERE id = :id")

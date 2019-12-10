@@ -28,6 +28,8 @@ public class ItemModel {
     @JsonProperty("price")
     public float price;
 
+    public boolean fromServer = true;
+
     public Bundle asBundle() {
         Bundle bun = new Bundle();
         bun.putInt("item", id);
@@ -40,6 +42,11 @@ public class ItemModel {
 
     public String toJson() throws JsonProcessingException {
         return new ObjectMapper().writeValueAsString(this);
+    }
+
+    public ItemModel setFromServer(boolean fromServer) {
+        this.fromServer = fromServer;
+        return this;
     }
 
 }
