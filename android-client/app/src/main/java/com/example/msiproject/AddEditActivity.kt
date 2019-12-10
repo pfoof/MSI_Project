@@ -7,6 +7,7 @@ import android.widget.Toast
 import com.example.msiproject.utils.Constants
 import com.example.msiproject.utils.Request
 import com.example.msiproject.utils.RequestResult
+import com.example.msiproject.utils.Tokens
 import kotlinx.android.synthetic.main.activity_add_edit.*
 import java.lang.Exception
 
@@ -29,7 +30,7 @@ class AddEditActivity : AppCompatActivity(), Request.IRequestResult {
 
         id = (bun.getString("item") ?: "-1").toInt()
 
-        cancel.setOnClickListener{ this.finish() }
+        cancel.setOnClickListener{ setResult(Constants.ACTIVITY_RESULT_CANCEL); this.finish() }
         save.setOnClickListener{
             showBusy()
             sendToServer()
@@ -39,15 +40,16 @@ class AddEditActivity : AppCompatActivity(), Request.IRequestResult {
     override fun publishResult(data: RequestResult?, sig: Request.Signal?) {
         when(sig) {
             Request.Signal.Edit, Request.Signal.Add -> {
+                runOnUiThread { unshowBusy() }
                 if(data != null) {
                     if(data.resultCode >= 200 && data.resultCode < 300)
                         runOnUiThread {
-                            unshowBusy()
+                            setResult(Constants.ACTIVITY_RESULT_OK)
                             finish()
                         }
                     else {
                         runOnUiThread {
-                            unshowBusy()
+                            setResult(Constants.ACTIVITY_RESULT_FAIL)
                             Toast.makeText(this, ""+data.resultCode+"/"+data.data, Toast.LENGTH_SHORT).show()
                         }
                     }
@@ -86,9 +88,9 @@ class AddEditActivity : AppCompatActivity(), Request.IRequestResult {
 
     private fun sendToServer() {
         if(id <= 0) {
-            Request(Constants.SERVER_DEST(null)+"/", "POST", "", mapOf("Content-Type" to "application/json", Constants.TOKEN_HEADER to Constants.TEST_TOKEN), this, Request.Signal.Add).execute()
+            Request(Constants.SERVER_DEST(null)+"/", "POST", "", mapOf("Content-Type" to "application/json", Constants.TOKEN_HEADER to Tokens.getToken(this)), this, Request.Signal.Add).execute()
         } else {
-            Request(Constants.SERVER_DEST(null)+"/", "PUT", "", mapOf("Content-Type" to "application/json", Constants.TOKEN_HEADER to Constants.TEST_TOKEN), this, Request.Signal.Edit).execute()
+            Request(Constants.SERVER_DEST(null)+"/", "PUT", "", mapOf("Content-Type" to "application/json", Constants.TOKEN_HEADER to Tokens.getToken(this)), this, Request.Signal.Edit).execute()
         }
     }
 }

@@ -1,6 +1,8 @@
 package com.example.msiproject
 
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.AsyncTask
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -121,7 +123,7 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
             Constants.SERVER_DEST(null)+"/"+id,
             "DELETE",
             "",
-            mapOf(Constants.TOKEN_HEADER to Constants.TEST_TOKEN),
+            mapOf(Constants.TOKEN_HEADER to Tokens.getToken(this)),
             this,
             Request.Signal.Delete
         ).execute()
@@ -132,10 +134,10 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
         if(model != null) {
             intent.putExtras(model.asBundle())
         }
-        startActivity(intent)
+        startActivityForResult(intent, Constants.ACTIVITY_REQUEST_ADDEDIT)
     }
 
-    override fun quantity(id: Int, delta: Int) {/
+    override fun quantity(id: Int, delta: Int) {
         if(isOffline) {
             ChangeQuantityLocallyTask(this, this, id, delta).execute()
             return
@@ -150,15 +152,20 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
         ).execute()
     }
 
-    override fun canDelete(): Boolean {
-        return false
-    }
+    override fun canDelete(): Boolean = getUserLevel() >= 4
+    override fun canEdit(): Boolean = getUserLevel() >= 2
+    override fun canQuantity(): Boolean = getUserLevel() >=1
+    fun getUserLevel(): Int = getSharedPreferences(Constants.USER_PREFS, Context.MODE_PRIVATE).getInt(Constants.USER_LEVEL, 0)
 
-    override fun canEdit(): Boolean {
-        return false
-    }
 
-    override fun canQuantity(): Boolean {
-        return true
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if(requestCode == Constants.ACTIVITY_REQUEST_ADDEDIT) {
+            if(resultCode == Constants.ACTIVITY_RESULT_OK)
+                runOnUiThread { if(refreshBtn.isEnabled) refresh(refreshBtn) }
+            else if(resultCode == Constants.ACTIVITY_RESULT_FAIL)
+                publishProblem(Exception("Add/Edit resulted in failure"))
+        }
+        super.onActivityResult(requestCode, resultCode, data)
+
     }
 }
