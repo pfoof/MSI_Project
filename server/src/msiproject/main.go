@@ -45,6 +45,15 @@ type Quantity struct {
 	Delta int `json:"change"`
 }
 
+type Action struct {
+	Item		int			`json:"item"`
+	Name		string		`json:"name"`
+	Prod    	string 		`json:"prod"`
+	Price   	float32		`json:"price"`
+	Quantity	int   		`json:"quantity"`
+	Action		string		`json:"action"`
+}
+
 type Email struct {
 	Email      string `json:"email"`
 	Verified   bool   `json:"verified"`
@@ -181,6 +190,41 @@ func quantity(item int, delta int) int {
 		return 404
 	}
 	return 200
+}
+
+func httpsync(w http.ResponseWriter, r *http.Request) {
+	
+	switch r.Method {
+		case "OPTIONS":
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Content-Type", "application/json")
+			w.Header().Set("Access-Control-Allow-Headers", "*")
+			w.Header().Set("Access-Control-Allow-Methods", "*")
+			break
+
+		case "POST":
+			w.Header().Add("Access-Control-Allow-Origin", "*")
+			w.Header().Add("Content-type", "application/json")
+			token := r.Header.Get("X-Auth-Token")
+			uid := checkToken(token)
+			if uid <= 0 {
+				w.WriteHeader(http.StatusUnauthorized)
+				fmt.Println("Authorize: Unauthorized", token)
+				return
+			}
+
+			level := getUserLevel(uid)
+			
+			
+			
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(fmt.Sprintf("{}")))
+			break
+		default:
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			w.Header().Add("Access-Control-Allow-Origin", "*")
+	}
+	
 }
 
 func httplist(w http.ResponseWriter, r *http.Request) {
@@ -426,6 +470,7 @@ func main() {
 
 	rtr.HandleFunc("/", listItems)
 	rtr.HandleFunc("/authorize", httpauth)
+	rtr.HandleFunc("/sync", httpsync)
 	rtr.HandleFunc("/callback/{prov}", callback)
 	rtr.HandleFunc("/login/{prov}", login)
 	rtr.HandleFunc("/{itemid}", item)
