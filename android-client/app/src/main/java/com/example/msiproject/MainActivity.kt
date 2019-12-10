@@ -6,6 +6,7 @@ import android.content.SharedPreferences
 import android.os.AsyncTask
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import com.example.msiproject.local.*
@@ -98,6 +99,16 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
     fun refresh(v: View) {
         if(isOffline) {
             LoadItemsFromDBTask(this, this).execute()
+            object: AsyncTask<Void?, Void?, Void?>() {
+                override fun doInBackground(vararg params: Void?): Void? {
+                    val actions = Local.getActions(this@MainActivity)
+                    runOnUiThread {
+                        val adapter = ActionsAdapter(this@MainActivity, R.layout.action_item, actions)
+                        actionsList.adapter = adapter
+                    }
+                    return null
+                }
+            }.execute()
             return
         }
         v.isEnabled = false
@@ -130,11 +141,15 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
                     runOnUiThread { if(refreshBtn.isEnabled) refresh(refreshBtn) }
                 }
 
-                if(sig == Request.Signal.Synchronize)
+                if(sig == Request.Signal.Synchronize && data != null && data.resultCode >= 200 && data.resultCode < 300) {
+                    Local.deleteAllActions(this)
                     runOnUiThread {
                         isOffline = false
                         setOfflineMode()
+                        Toast.makeText(this, "Synchronized!!!", Toast.LENGTH_SHORT).show()
+                        Log.d("Synchronize", "Done with synchronization")
                     }
+                }
             }
 
         }

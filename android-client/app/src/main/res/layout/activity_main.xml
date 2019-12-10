@@ -7,13 +7,59 @@
     tools:context=".MainActivity"
     android:theme="@style/Theme.AppCompat.NoActionBar">
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
     <ListView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_weight="0.33"
         android:id="@+id/list"
         android:layout_marginVertical="24dp">
 
     </ListView>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="0.66"
+        android:id="@+id/offlineMode"
+        android:background="#FFFFFFFF"
+        android:padding="2dp"
+        android:orientation="vertical"
+        android:visibility="visible"
+        android:layout_gravity="bottom">
+
+        <ListView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="8dp"
+            android:background="@color/colorActionsLog"
+            android:layout_above="@+id/offlineRetry"
+            android:id="@+id/actionsList" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Offline mode"
+            android:layout_alignBaseline="@+id/offlineRetry"
+            android:layout_toRightOf="@+id/offlineRetry"
+            android:layout_marginHorizontal="16dp"/>
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Retry"
+            android:id="@+id/offlineRetry"
+            android:layout_marginLeft="64dp"
+            android:padding="0dp"
+            android:layout_alignParentBottom="true" />
+
+    </RelativeLayout>
+
+    </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:layout_width="wrap_content"
@@ -32,32 +78,6 @@
         android:background="@color/colorAdd"
         android:src="@drawable/add_small"
         android:id="@+id/addBtn" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/offlineMode"
-        android:background="#FFFFFFFF"
-        android:padding="2dp"
-        android:orientation="vertical"
-        android:visibility="visible"
-        android:layout_gravity="bottom">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Offline mode"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginHorizontal="16dp"/>
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Retry"
-            android:id="@+id/offlineRetry"
-            android:layout_gravity="center_horizontal"/>
-
-    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"

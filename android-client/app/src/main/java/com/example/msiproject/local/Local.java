@@ -35,4 +35,8 @@ public class Local {
         return getActionsDatabase(context).getAll();
     }
 
+    public static void deleteAllActions(Context context) {
+        getActionsDatabase(context).deleteAll();
+    }
+
 }

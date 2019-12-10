@@ -52,6 +52,7 @@ type Action struct {
 	Price   	float32		`json:"price"`
 	Quantity	int   		`json:"quantity"`
 	Action		string		`json:"action"`
+	Timestamp	int64		`json:"timestamp"`
 }
 
 type Email struct {
@@ -134,6 +135,7 @@ func add(item *Item) int {
 }
 
 func delete(item int) int {
+	
 	fmt.Printf(">Deleting item %d\n", item)
 	stmt, err := db.Prepare("delete from items where id = ?")
 	if err != nil {
@@ -147,6 +149,35 @@ func delete(item int) int {
 		fmt.Println("<del> Error executing")
 		return -1
 	}
+	
+	//Delete all changes related to item to keep the database clean
+	stmt, err = db.Prepare("delete from changes where item = ?")
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("<del> Error preparing/changes")
+		return -1
+	}
+	_, err = stmt.Exec(item)
+	if err != nil {
+		fmt.Printf(err.Error())
+		fmt.Println("<del> Error executing/changes")
+		return -1
+	}
+	
+	//Delete all changes in quantity related to item to keep the database clean
+	stmt, err = db.Prepare("delete from deltas where item = ?")
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("<del> Error preparing/deltas")
+		return -1
+	}
+	_, err = stmt.Exec(item)
+	if err != nil {
+		fmt.Printf(err.Error())
+		fmt.Println("<del> Error executing/deltas")
+		return -1
+	}
+	
 	return 200
 }
 
@@ -172,6 +203,24 @@ func update(item *Item) int {
 	return 200
 }
 
+func addUpdate(item *Item, timestamp int64) int {
+	id := item.Item
+	_item := get(id)
+	if _item == nil {
+		fmt.Printf("<upd> No item with id = %d\n", id)
+		return 404
+	}
+	
+	_, err := db.Exec("insert into changes (name, prod, price, timestamp, item) values (?, ?, ?, ?, ?)", item.Name, item.Prod, item.Price, timestamp, item.Item)
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("<addUpd> Error executing")
+		return -1
+	}
+	
+	return 200
+}
+
 func quantity(item int, delta int) int {
 	r, err := db.Exec("INSERT INTO deltas (item, delta) VALUES (?, ?)", item, delta)
 	if err != nil {
@@ -192,6 +241,26 @@ func quantity(item int, delta int) int {
 	return 200
 }
 
+func canuser(action string, level int) bool {
+	if action == "ADD" && level >= ADD_EDIT {
+		return true
+	}
+	
+	if action == "EDIT" && level >= ADD_EDIT {
+		return true
+	}
+	
+	if action == "QUANTITY" && level >= QUANTITY {
+		return true
+	}
+	
+	if action == "DELETE" && level >= DELETE {
+		return true
+	}
+	
+	return false
+}
+
 func httpsync(w http.ResponseWriter, r *http.Request) {
 	
 	switch r.Method {
@@ -205,6 +274,7 @@ func httpsync(w http.ResponseWriter, r *http.Request) {
 		case "POST":
 			w.Header().Add("Access-Control-Allow-Origin", "*")
 			w.Header().Add("Content-type", "application/json")
+
 			token := r.Header.Get("X-Auth-Token")
 			uid := checkToken(token)
 			if uid <= 0 {
@@ -213,9 +283,52 @@ func httpsync(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
+			body, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				fmt.Println("Bad request")
+				return
+			}
+			
+			actions := make([]Action, 0)
+			err = json.NewDecoder(bytes.NewReader(body)).Decode(&actions)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				fmt.Println("Bad request (json)")
+				return
+			}
+			
+			fmt.Printf("Sync: received %d actions", len(actions))
 			level := getUserLevel(uid)
 			
-			
+			for i := 0; i < len(actions); i++ {
+				action := actions[i]
+				if canuser(action.Action, level) {
+					if action.Action == "ADD" {
+						var item *Item = new(Item)
+						fmt.Printf(">Sync: adding item %s %s %.2f %d\n", action.Prod, action.Name, action.Price, action.Quantity)
+						item.Prod = action.Prod
+						item.Name = action.Name
+						item.Price = action.Price
+						item.Quantity = action.Quantity
+						add(item)
+					} else if action.Action == "DELETE" {
+						fmt.Printf(">Sync: deleting item %d\n", action.Item)
+						delete(action.Item)
+					} else if action.Action == "EDIT" {
+						var item *Item = new(Item)
+						item.Name = action.Name
+						item.Prod = action.Prod
+						item.Price = action.Price
+						item.Item = action.Item
+						fmt.Printf(">Sync: updating item %d @ %d\n", item.Item, action.Timestamp)
+						addUpdate(item, action.Timestamp)
+					} else if action.Action == "QUANTITY" {
+						fmt.Printf(">Sync: quantity of %d += %d\n", action.Item, action.Quantity)
+						quantity(action.Item, action.Quantity)
+					}
+				}
+			} 
 			
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(fmt.Sprintf("{}")))
@@ -242,6 +355,8 @@ func httplist(w http.ResponseWriter, r *http.Request) {
 	items := []Item{}
 
 	for rows.Next() {
+		
+		//Get item
 		var item Item
 		err = rows.Scan(&(item.Item), &(item.Name), &(item.Prod), &(item.Price), &(item.Quantity))
 		if err != nil {
@@ -249,6 +364,8 @@ func httplist(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		
+		//Get quantity changes
 		subrows, err := db.Prepare("SELECT COALESCE(SUM(delta),0) FROM deltas WHERE item = ?")
 		if err != nil {
 			fmt.Println(err.Error())
@@ -263,6 +380,26 @@ func httplist(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		item.Quantity += int(delta)
+		
+		//Get item changes
+		subrows2, err := db.Query("SELECT name, prod, price FROM changes WHERE item = ? ORDER BY timestamp DESC LIMIT 1", item.Item)
+		if err != nil {
+			fmt.Println(err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		defer subrows2.Close()
+		
+		//If any changes happened
+		for subrows2.Next() {
+			err = subrows2.Scan(&(item.Name), &(item.Prod), &(item.Price))
+			if err != nil {
+				fmt.Println(err.Error())
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+		}
+
 		items = append(items, item)
 	}
 

@@ -17,8 +17,7 @@ public class ItemModel {
 
     @PrimaryKey
     @JsonProperty("item")
-    @NonNull
-    public int id = 0;
+    public Integer id = null;
     @JsonProperty("name")
     public String name;
     @JsonProperty("prod")
@@ -32,7 +31,7 @@ public class ItemModel {
 
     public Bundle asBundle() {
         Bundle bun = new Bundle();
-        bun.putInt("item", id);
+        bun.putInt("item", id==null?0:id);
         bun.putString("name", this.name);
         bun.putString("prod", prod);
         bun.putInt("quantity", quantity);
