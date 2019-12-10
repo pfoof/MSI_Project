@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import com.example.msiproject.utils.*
@@ -90,6 +91,7 @@ class LoginActivity : AppCompatActivity(), Request.IRequestResult {
                     invalidateToken()
                     showError("Please login again")
                 } else if(data.resultCode >= 200 && data.resultCode < 250) {
+                    Log.d("User_Token", data.data)
                     saveUserLevel(UserLevel.getInstance(data.data).getLevel())
                     continueToMain(false)
                 }

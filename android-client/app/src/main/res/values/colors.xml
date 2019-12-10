@@ -9,4 +9,7 @@
     <color name="colorRem">#BD2234</color>
     <color name="colorDel">#9D1122</color>
     <color name="colorNeutral">#a6a6a6</color>
+
+    <color name="colorStatusbar">#b5b5b5</color>
+    <color name="colorStatusText">#1b1b1b</color>
 </resources>

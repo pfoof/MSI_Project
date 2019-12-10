@@ -18,11 +18,11 @@ class Action {
     @JsonProperty("prod")
     public String prod;
     @JsonProperty("price")
-    public String price;
+    public float price;
     @JsonProperty("quantity")
-    public String quantity;
+    public int quantity;
     @JsonProperty("item")
-    public String item;
+    public int item;
     @JsonProperty("timestamp")
     public long timestamp = new Date().getTime();
 

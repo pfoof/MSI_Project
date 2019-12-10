@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase;
 
 import com.example.msiproject.utils.ItemModel;
 
-@Database(entities = {Action.class, ItemModel.class}, version = 2)
+@Database(entities = {Action.class, ItemModel.class}, version = 4)
 abstract class AppDatabase extends RoomDatabase {
     public abstract ActionDao getActionsDao();
     public abstract ItemsDao getItemsDao();

@@ -8,6 +8,9 @@ import androidx.room.PrimaryKey;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Entity(tableName = "items")
 public class ItemModel {
@@ -15,24 +18,28 @@ public class ItemModel {
     @PrimaryKey
     @JsonProperty("item")
     @NonNull
-    public String id = "0";
+    public int id = 0;
     @JsonProperty("name")
     public String name;
     @JsonProperty("prod")
     public String prod;
     @JsonProperty("quantity")
-    public String quantity;
+    public int quantity;
     @JsonProperty("price")
-    public String price;
+    public float price;
 
     public Bundle asBundle() {
         Bundle bun = new Bundle();
-        bun.putString("item", id);
+        bun.putInt("item", id);
         bun.putString("name", this.name);
         bun.putString("prod", prod);
-        bun.putString("quantity", quantity);
-        bun.putString("price", price);
+        bun.putInt("quantity", quantity);
+        bun.putFloat("price", price);
         return bun;
+    }
+
+    public String toJson() throws JsonProcessingException {
+        return new ObjectMapper().writeValueAsString(this);
     }
 
 }

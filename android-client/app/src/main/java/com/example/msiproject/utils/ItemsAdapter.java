@@ -57,7 +57,7 @@ public class ItemsAdapter extends ArrayAdapter<ItemModel> {
         ImageButton btnAdd = (ImageButton) l.findViewById(R.id.btnAdd);
         ImageButton btnRemove = (ImageButton) l.findViewById(R.id.btnRemove);
 
-        final String idCopy = new String(o.id);
+        final int idCopy = o.id;
 
         if(text_name != null)
             text_name.setText(o.name);
@@ -79,7 +79,7 @@ public class ItemsAdapter extends ArrayAdapter<ItemModel> {
                 btnEdit.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        action.editItem(Integer.parseInt(idCopy), o);
+                        action.editItem(idCopy, o);
                     }
                 });
         }
@@ -90,7 +90,7 @@ public class ItemsAdapter extends ArrayAdapter<ItemModel> {
                 btnDelete.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        action.deleteItem(Integer.parseInt(idCopy));
+                        action.deleteItem(idCopy);
                     }
                 });
         }
@@ -101,7 +101,7 @@ public class ItemsAdapter extends ArrayAdapter<ItemModel> {
                 btnAdd.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        action.quantity(Integer.parseInt(idCopy), 1);
+                        action.quantity(idCopy, 1);
                     }
                 });
         }
@@ -112,7 +112,7 @@ public class ItemsAdapter extends ArrayAdapter<ItemModel> {
                 btnRemove.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        action.quantity(Integer.parseInt(idCopy), -1);
+                        action.quantity(idCopy, -1);
                     }
                 });
         }

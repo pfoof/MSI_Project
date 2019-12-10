@@ -40,6 +40,8 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
         setOfflineMode()
         synchronize()
 
+        userStatus.text = Tokens.getToken(this).substring(0,8) + " - level " + getUserLevel()
+
     }
 
     private fun setOfflineMode() {

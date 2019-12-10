@@ -2,12 +2,11 @@ package com.example.msiproject
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
-import com.example.msiproject.utils.Constants
-import com.example.msiproject.utils.Request
-import com.example.msiproject.utils.RequestResult
-import com.example.msiproject.utils.Tokens
+import com.example.msiproject.utils.*
+import com.fasterxml.jackson.core.JsonProcessingException
 import kotlinx.android.synthetic.main.activity_add_edit.*
 import java.lang.Exception
 
@@ -20,15 +19,15 @@ class AddEditActivity : AppCompatActivity(), Request.IRequestResult {
         setContentView(R.layout.activity_add_edit)
 
         val bun = intent.extras ?: Bundle()
-        inputQuantity.isEnabled = !bun.containsKey("quantity")
-        inputQuantity.setText( bun.getString("quantity") ?: "1" )
+        id = bun.getInt("item", -1)
+
+        inputQuantity.isEnabled = !bun.containsKey("item")
+        inputQuantity.setText( ""+bun.getInt("quantity", 1) )
         inputName.setText( bun.getString("name") ?: "polaris" )
         inputProd.setText( bun.getString("prod") ?: "htc")
-        inputPrice.setText( bun.getString("price") ?: "19.99" )
-        itemID.setText( "ID: " + (bun.getString("item") ?: "<new item>") )
+        inputPrice.setText( ""+bun.getFloat("price", 19.99f) )
+        itemID.setText( "ID: " + ( if(id>0) id else "<new item>") )
         unshowBusy()
-
-        id = (bun.getString("item") ?: "-1").toInt()
 
         cancel.setOnClickListener{ setResult(Constants.ACTIVITY_RESULT_CANCEL); this.finish() }
         save.setOnClickListener{
@@ -87,10 +86,28 @@ class AddEditActivity : AppCompatActivity(), Request.IRequestResult {
     }
 
     private fun sendToServer() {
+        val im = ItemModel()
+        var method = "POST"
+        var signal = Request.Signal.Add
+        im.name = inputName.text.toString()
+        im.prod = inputProd.text.toString()
+        im.price = inputPrice.text.toString().toFloat()
         if(id <= 0) {
-            Request(Constants.SERVER_DEST(null)+"/", "POST", "", mapOf("Content-Type" to "application/json", Constants.TOKEN_HEADER to Tokens.getToken(this)), this, Request.Signal.Add).execute()
+            im.quantity = inputQuantity.text.toString().toInt()
+            method = "POST"
+            signal = Request.Signal.Add
         } else {
-            Request(Constants.SERVER_DEST(null)+"/", "PUT", "", mapOf("Content-Type" to "application/json", Constants.TOKEN_HEADER to Tokens.getToken(this)), this, Request.Signal.Edit).execute()
+            im.id = id.toString().toInt()
+            method = "PUT"
+            signal = Request.Signal.Edit
+        }
+
+        try {
+            val asjson = im.toJson()
+            Log.d("AddEdit", asjson)
+            Request(Constants.SERVER_DEST(null)+"/", method, asjson, mapOf("Content-Type" to "application/json", Constants.TOKEN_HEADER to Tokens.getToken(this)), this, signal).execute()
+        } catch (e: JsonProcessingException) {
+            publishProblem(e)
         }
     }
 }

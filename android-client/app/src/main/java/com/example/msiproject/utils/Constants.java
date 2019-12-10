@@ -13,7 +13,7 @@ public class Constants {
 
     public static final int RESULT_CONNECTION_ERROR = -101;
 
-    public static final int ACTIVITY_REQUEST_ADDEDIT = 0x10001;
+    public static final int ACTIVITY_REQUEST_ADDEDIT = 0x1001;
     public static final int ACTIVITY_RESULT_FAIL = 0x400;
     public static final int ACTIVITY_RESULT_OK = 0x200;
     public static final int ACTIVITY_RESULT_CANCEL = 0x300;

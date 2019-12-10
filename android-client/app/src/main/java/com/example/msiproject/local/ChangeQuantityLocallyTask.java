@@ -23,8 +23,8 @@ public class ChangeQuantityLocallyTask extends LocalActionTask {
         getItemsDb().quantity(id, delta);
         Action action = new Action();
         action.actionTaken = ActionTaken.QUANTITY;
-        action.item = ""+id;
-        action.quantity = ""+delta;
+        action.item = id;
+        action.quantity = delta;
         getActionDb().insertAll(action);
     }
 
