@@ -18,5 +18,6 @@ public class Constants {
     public static final int ACTIVITY_RESULT_OK = 0x200;
     public static final int ACTIVITY_RESULT_CANCEL = 0x300;
 
+    public static final int ACTIVITY_REQUEST_MAIN = 0x2001;
 
 }

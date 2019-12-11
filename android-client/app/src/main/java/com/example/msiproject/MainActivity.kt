@@ -126,6 +126,20 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
 
         when(sig) {
 
+            Request.Signal.Authorize -> {
+                if(data != null && data.resultCode >= 200 && data.resultCode < 300) {
+                    if(isOffline) {
+                        isOffline = false
+                        setOfflineMode()
+                        synchronize()
+                    }
+                } else {
+                    setResult(Constants.ACTIVITY_RESULT_FAIL)
+                    finish()
+                }
+                return
+            }
+
             Request.Signal.Fetch -> {
                 runOnUiThread{refreshBtn.isEnabled = true}
                 if(data != null && data.resultCode < 300 && data.resultCode >= 200) {
@@ -213,5 +227,10 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
         }
         super.onActivityResult(requestCode, resultCode, data)
 
+    }
+
+    override fun onBackPressed() {
+        setResult(Constants.ACTIVITY_RESULT_OK)
+        super.onBackPressed()
     }
 }

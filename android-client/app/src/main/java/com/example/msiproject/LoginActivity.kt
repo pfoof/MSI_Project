@@ -51,8 +51,7 @@ class LoginActivity : AppCompatActivity(), Request.IRequestResult {
         runOnUiThread {
             val intent = Intent(this, MainActivity::class.java)
             if(offline) intent.putExtra("offline", true)
-            startActivity(intent)
-            finish()
+            startActivityForResult(intent, Constants.ACTIVITY_REQUEST_MAIN)
         }
     }
 
@@ -71,6 +70,8 @@ class LoginActivity : AppCompatActivity(), Request.IRequestResult {
 
     private fun showOffline() {
         runOnUiThread {
+            github.isEnabled = false
+            local.isEnabled = false
             offline.visibility = View.VISIBLE
             offline.setOnClickListener {
                 continueToMain(true)
@@ -82,12 +83,13 @@ class LoginActivity : AppCompatActivity(), Request.IRequestResult {
         when(sig) {
             Request.Signal.Authorize -> {
 
-                if(data != null && data.resultCode == Constants.RESULT_CONNECTION_ERROR) {
+                if(data == null || data.resultCode < 0) {
                     showError("Connection error")
+                    showOffline()
                     return
                 }
 
-                if(data == null || data.resultCode >= 400) {
+                if(data.resultCode >= 400) {
                     invalidateToken()
                     showError("Please login again")
                 } else if(data.resultCode >= 200 && data.resultCode < 250) {
@@ -101,7 +103,6 @@ class LoginActivity : AppCompatActivity(), Request.IRequestResult {
 
     override fun publishProblem(e: Exception?) {
         runOnUiThread { Toast.makeText(this, e?.message, Toast.LENGTH_SHORT).show() }
-        showOffline()
     }
 
     private fun hasToken(): Boolean = Tokens.hasToken(this)
@@ -121,5 +122,12 @@ class LoginActivity : AppCompatActivity(), Request.IRequestResult {
         val prefs = getSharedPreferences(Constants.USER_PREFS, Context.MODE_PRIVATE).edit()
         prefs.putInt(Constants.USER_LEVEL, level)
         prefs.commit()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if(requestCode == Constants.ACTIVITY_REQUEST_MAIN && resultCode == Constants.ACTIVITY_RESULT_FAIL) {
+            Toast.makeText(this, "Please login again!", Toast.LENGTH_LONG).show()
+        } else
+            super.onActivityResult(requestCode, resultCode, data)
     }
 }

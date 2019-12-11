@@ -23,7 +23,7 @@ public class Request extends AsyncTask<Object, Integer, Object> {
     private URL url;
     private String method;
     private String params;
-    private int responseCode = -1;
+    private int responseCode = Constants.RESULT_CONNECTION_ERROR;
     private Map<String, String> headers = null;
 
     public Request(String url, String method, String params, Map<String, String> headers, IRequestResult result, Signal signal) throws MalformedURLException {
@@ -80,7 +80,7 @@ public class Request extends AsyncTask<Object, Integer, Object> {
         } catch (IOException e) {
             Log.e("Request", e.getMessage());
             if(requestListener != null) requestListener.publishProblem(e);
-            return new RequestResult(Constants.RESULT_CONNECTION_ERROR, "{}");
+            return new RequestResult(responseCode, "{}");
         }
     }
 
