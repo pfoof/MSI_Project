@@ -5,7 +5,10 @@
 
   "meta" : [],
 
-  "link" : [],
+  "link" : [
+    "<link rel='manifest' href='/manifest.webmanifest' />",
+    "<script>if ('serviceWorker' in navigator) {navigator.serviceWorker.register('/service-worker.js').catch(function() {}); }</script>"
+  ],
 
   "d_flags" : [],
 

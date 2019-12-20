@@ -1,5 +1,9 @@
 package client.views;
 
+import haxe.macro.Expr.Constant;
+import js.Browser;
+import priori.event.PriTapEvent;
+import priori.view.layout.PriVerticalLayout;
 import priori.view.container.PriGroup;
 import priori.bootstrap.*;
 
@@ -7,18 +11,59 @@ class LoginForm extends PriGroupWithState {
     
     public static inline final NAME = "login";
 
+    private var title: PriBSFormLabel;
     private var usernameLabel: PriBSFormLabel;
     private var passwordLabel: PriBSFormLabel;
     private var usernameInput: PriBSFormInputText;
     private var passwordInput: PriBSFormInputText;
     private var loginButton: PriBSFormButton;
+
+    private var githubButton: PriBSFormButton;
+    private var localButton: PriBSFormButton;
+    private var layout: PriVerticalLayout;
+    private var error: PriBSLabel;
+    private var debug: PriBSLabel;
     
     public function new() {
         super();
     }
 
-    override private function setup(): Void {
+    override function setup() {
         super.setup();
+
+        error = new PriBSLabel();
+        error.visible = false;
+        error.text = "";
+        error.context = DANGER;
+        
+        debug = new PriBSLabel();
+        debug.visible = true;
+        debug.text = "";
+
+        title = new PriBSFormLabel();
+        title.text = "Login options";
+
+        layout = new PriVerticalLayout();
+        layout.autoSizeContainer = false;
+        layout.autoSizeElements = false;
+
+        githubButton = new PriBSFormButton();
+        githubButton.text = "Login with GitHub";
+        localButton = new PriBSFormButton();
+        localButton.text = "Login locally";
+        
+        layout.addChild(debug);
+        layout.addChild(error);
+        layout.addChild(title);
+
+        layout.addChild(githubButton);
+        layout.addChild(localButton);
+
+        addChild(layout);
+
+        githubButton.addEventListener(PriTapEvent.TAP, _ -> Browser.window.location.replace(Constants.SERVER_DEST+"/login/github"));
+        localButton.addEventListener(PriTapEvent.TAP, _ -> Browser.window.location.replace(Constants.SERVER_DEST+"/login/local"));
+
         this.usernameLabel = new PriBSFormLabel();
         this.usernameLabel.text = "Username";
         this.passwordLabel = new PriBSFormLabel();
@@ -27,15 +72,21 @@ class LoginForm extends PriGroupWithState {
         this.passwordInput = new PriBSFormInputText();
         this.passwordInput.password = true;
 
-        this.addChild(usernameLabel);
+        /*this.addChild(usernameLabel);
         this.addChild(usernameInput);
         this.addChild(passwordLabel);
-        this.addChild(passwordInput);
+        this.addChild(passwordInput);*/
+
+        validate();
     }
 
     override function paint() {
         var margin: Int = 20;
         super.paint();
+
+        layout.x = layout.y = margin;
+        layout.width = width - margin * 2;
+        layout.height = height - margin * 2;
 
         this.usernameLabel.width = 
         this.usernameInput.width = 
@@ -56,5 +107,13 @@ class LoginForm extends PriGroupWithState {
 
     }
 
+    override function reset(?data:Map<String, String>) {
+        super.reset(data);
+        error.visible = false;
+        if(data.exists("error")) {
+            error.visible = true;
+            error.text = data.get("error");
+        }
+    }
 
 }

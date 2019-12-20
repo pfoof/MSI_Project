@@ -1,5 +1,7 @@
 package client.views;
 
+import priori.view.layout.PriHorizontalLayout;
+import js.html.XMLHttpRequest;
 import priori.bootstrap.type.PriBSContextualType;
 import priori.net.PriURLLoader;
 import priori.event.PriTapEvent;
@@ -8,6 +10,7 @@ import priori.view.layout.PriVerticalLayout;
 import priori.types.PriFormInputTextFieldType;
 import priori.bootstrap.PriBSFormInputText;
 import priori.bootstrap.PriBSLabel;
+import js.jquery.JqXHR;
 
 class AddItemForm extends PriGroupWithState {
 
@@ -26,12 +29,17 @@ class AddItemForm extends PriGroupWithState {
     private var priceInput: PriBSFormInputText;
 
     private var layout: PriVerticalLayout;
+    private var header: PriHorizontalLayout;
 
     private var backButton: PriBSImage;
     private var saveButton: PriBSImage;
 
     override function setup() {
         super.setup();
+
+        header = new PriHorizontalLayout();
+        header.autoSizeContainer = true;
+        header.autoSizeElements = false;
 
         backButton = new PriBSImage();
         backButton.load('images/back.png');
@@ -40,31 +48,33 @@ class AddItemForm extends PriGroupWithState {
                 .switchContent(ItemList.NAME)
         );
 
+        idLabel = new PriBSLabel();
+        idLabel.text = "ID: <new item>";
+
+        header.addChildList([ backButton, idLabel ]);
+
         saveButton = new PriBSImage();
         saveButton.load('images/save.png');
         saveButton.addEventListener(PriTapEvent.TAP,
-            _ -> ContentManager.getManager()
-                .switchContent(ItemList.NAME)
+            _ -> save()
         );
 
         layout = new PriVerticalLayout();
         layout.alignType = CENTER;
         layout.autoSizeContainer =
         layout.autoSizeElements = false;
-        layout.gap = 16;
+        layout.gap = 8;
 
         nameLabel = new PriBSLabel();
         prodLabel = new PriBSLabel();
         quantityLabel = new PriBSLabel();
         priceLabel = new PriBSLabel();
-        idLabel = new PriBSLabel();
         errorLabel = new PriBSLabel();
 
         nameLabel.text = "Name";
         prodLabel.text = "Manufacturer";
         quantityLabel.text = "Quantity:";
         priceLabel.text = "Price:";
-        idLabel.text = "ID: <new item>";
         errorLabel.text = "";
         errorLabel.context = PriBSContextualType.DANGER;
         errorLabel.visible = false;
@@ -80,21 +90,27 @@ class AddItemForm extends PriGroupWithState {
         priceInput.fieldType = PriFormInputTextFieldType.NUMBER;
         priceInput.getJSElement().setAttribute("step", "0.01");
 
-        addChildHere([ layout ]);
-
-        Utils.addAllChildren(layout, [ backButton, idLabel, nameLabel, nameInput, prodLabel, prodInput, priceLabel, priceInput, quantityLabel, quantityInput, errorLabel, saveButton ]);
+        addChild(layout);
+        layout.addChildList([ header, nameLabel, nameInput, prodLabel, prodInput, priceLabel, priceInput, quantityLabel, quantityInput, saveButton ]);
 
         this.validate();
 
         Access.registerCallback( (signal, data) -> {
             switch(signal) {
                 case Add | Edit: {
-                    var req: PriURLLoader = cast(data.data, PriURLLoader);
-                    if(req.status == Constants.RESPONSE_STATUS_OK) {
+                    trace(Reflect.hasField(data, "e"));
+                    var req = data.e;
+                    if(req.status >= Constants.RESPONSE_STATUS_OK && req.status < 300) {
                         ContentManager.getManager().switchContent(ItemList.NAME);
-                    } else if(req.status == Constants.RESPONSE_STATUS_UNAUTH) {
+                    } else if(req.status == 401) {
+                        Utils.logout();
+                    } else if(req.status >= 400 || (req.state() != "resolved" && req.state() != "nocontent" && req.state() != "success")) {
                         errorLabel.visible = true;
-                        errorLabel.text = req.data;
+                        errorLabel.text = data.data;
+                        nameInput.disabled = false;
+                        prodInput.disabled = false;
+                        priceInput.disabled = false;
+                        quantityInput.disabled = signal != Add;
                     }
                     
                 }
@@ -161,10 +177,16 @@ class AddItemForm extends PriGroupWithState {
         var price = Std.parseFloat(priceInput.value);
         var quant = Std.parseInt(quantityInput.value);
 
+        nameInput.disabled = true;
+        prodInput.disabled = true;
+        priceInput.disabled = true;
+        quantityInput.disabled = true;
+        errorLabel.visible = false;
+
         if(itemID <= 0) {
-            Access.getAccessTarget().addProduct("", name, prod, price, quant);
+            Access.getAccessTarget().addProduct(Utils.getToken(), name, prod, price, quant);
         } else {
-            Access.getAccessTarget().editProduct("", itemID, name, prod, price);
+            Access.getAccessTarget().editProduct(Utils.getToken(), itemID, name, prod, price);
         }
     }
 

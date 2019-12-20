@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#008577</color>
+    <color name="colorPrimaryDark">#00574B</color>
+    <color name="colorAccent">#112288</color>
+
+    <color name="colorRefresh">#112288</color>
+    <color name="colorAdd">#22CD54</color>
+    <color name="colorRem">#BD2234</color>
+    <color name="colorDel">#9D1122</color>
+    <color name="colorNeutral">#a6a6a6</color>
+
+    <color name="colorStatusbar">#b5b5b5</color>
+    <color name="colorStatusText">#1b1b1b</color>
+
+    <color name="colorOfflinebar">#c8c8c8</color>
+
+    <color name="colorActionsLog">#c5c597</color>
+
+    <color name="actionsLogId">#CACCAF</color>
+    <color name="actionsLogName">#D2D69F</color>
+    <color name="actionsLogProd">#FFFDF5</color>
+    <color name="actionsLogPrice">#B5C9FF</color>
+    <color name="actionsLogQuantity">#AFBFCC</color>
+</resources>
