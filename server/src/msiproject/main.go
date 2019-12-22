@@ -55,6 +55,11 @@ type Action struct {
 	Timestamp	int64		`json:"timestamp"`
 }
 
+type SyncPack struct {
+	Actions		[]Action	`json:"actions"`
+	Uuid		string		`json:"uuid"`
+}
+
 type Email struct {
 	Email      string `json:"email"`
 	Verified   bool   `json:"verified"`
@@ -241,6 +246,24 @@ func quantity(item int, delta int) int {
 	return 200
 }
 
+func hassyncuuid(uuid string) bool {
+	stmt, err := db.Prepare("select count(*) from syncs where uuid=?")
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("<hasuuid> Error preparing")
+		return false
+	}
+	count := 0
+	err = stmt.QueryRow(uuid).Scan(&count)
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("<hasuuid> Error query")
+		return false
+	}
+
+	return count > 0
+}
+
 func canuser(action string, level int) bool {
 	if action == "ADD" && level >= ADD_EDIT {
 		return true
@@ -290,19 +313,26 @@ func httpsync(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			
-			actions := make([]Action, 0)
-			err = json.NewDecoder(bytes.NewReader(body)).Decode(&actions)
+			var syncpack SyncPack
+			err = json.NewDecoder(bytes.NewReader(body)).Decode(&syncpack)
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
 				fmt.Println("Bad request (json)")
 				return
 			}
 			
-			fmt.Printf("Sync: received %d actions", len(actions))
+			fmt.Printf("Sync: received %d actions with uuid %s\n", len(syncpack.Actions), syncpack.Uuid)
+			if hassyncuuid(syncpack.Uuid) {
+				fmt.Printf("Sync: uuid already in database!\n")
+				w.WriteHeader(http.StatusOK)
+				w.Write([]byte(fmt.Sprintf("{}")))
+				return
+			}
+			
 			level := getUserLevel(uid)
 			
-			for i := 0; i < len(actions); i++ {
-				action := actions[i]
+			for i := 0; i < len(syncpack.Actions); i++ {
+				action := syncpack.Actions[i]
 				if canuser(action.Action, level) {
 					if action.Action == "ADD" {
 						var item *Item = new(Item)

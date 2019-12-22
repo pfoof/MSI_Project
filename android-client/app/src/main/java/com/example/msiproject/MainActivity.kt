@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotlinx.android.synthetic.main.activity_main.*
 import java.lang.Exception
+import java.util.*
 
 class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResult {
 
@@ -68,10 +69,12 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
     private fun synchronize() {
         object: AsyncTask<Void?, Void?, Void?>() {
             override fun doInBackground(vararg params: Void?): Void? {
+                val prefs = getSharedPreferences(Constants.USER_PREFS, Context.MODE_PRIVATE)
+                val uuid = if(prefs.contains(Constants.SYNC_UUID)) prefs.getString(Constants.SYNC_UUID, UUID.randomUUID().toString()) else UUID.randomUUID().toString()
+                prefs.edit().putString(Constants.SYNC_UUID, uuid).commit()
                 val actions = Local.getActions(this@MainActivity)
                 if(!actions.isEmpty()) {
-                    val om = ObjectMapper()
-                    val str = om.writeValueAsString(actions)
+                    val str = SyncPack(uuid!!, actions).toString()
                     val result = Request(
                         Constants.SERVER_DEST(null) + "/sync",
                         "POST",
@@ -157,6 +160,7 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
 
                 if(sig == Request.Signal.Synchronize && data != null && data.resultCode >= 200 && data.resultCode < 300) {
                     Local.deleteAllActions(this)
+                    getSharedPreferences(Constants.USER_PREFS, Context.MODE_PRIVATE).edit().remove(Constants.SYNC_UUID).commit()
                     runOnUiThread {
                         isOffline = false
                         setOfflineMode()
