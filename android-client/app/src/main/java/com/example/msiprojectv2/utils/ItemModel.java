@@ -5,11 +5,14 @@ import android.os.Bundle;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Entity(tableName = "items")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ItemModel {
 
     @PrimaryKey
@@ -23,7 +26,7 @@ public class ItemModel {
     public int quantity;
     @JsonProperty("price")
     public float price;
-    @JsonProperty
+    @JsonProperty("color")
     public String color = "";
 
     public boolean fromServer = true;
