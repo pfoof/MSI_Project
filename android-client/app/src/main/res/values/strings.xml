@@ -1,3 +1,14 @@
 <resources>
     <string name="app_name">MSI Project</string>
+
+    <string-array name="colors">
+        <item>blue</item>
+        <item>red</item>
+        <item>yellow</item>
+        <item>green</item>
+        <item>black</item>
+        <item>white</item>
+        <item>silver</item>
+        <item>other</item>
+    </string-array>
 </resources>

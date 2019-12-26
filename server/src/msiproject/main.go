@@ -37,6 +37,7 @@ type Item struct {
 	Name     string  `json:"name"`
 	Prod     string  `json:"prod"`
 	Price    float32 `json:"price"`
+	Color	 string	 `json:"color"`
 	Quantity int     `json:"quantity"`
 }
 
@@ -50,6 +51,7 @@ type Action struct {
 	Name		string		`json:"name"`
 	Prod    	string 		`json:"prod"`
 	Price   	float32		`json:"price"`
+	Color		string		`json:"color"`
 	Quantity	int   		`json:"quantity"`
 	Action		string		`json:"action"`
 	Timestamp	int64		`json:"timestamp"`
@@ -116,14 +118,14 @@ func get(id int) *Item {
 }
 
 func add(item *Item) int {
-	fmt.Printf(">Adding item %s, %s, %.2f, %d\n", item.Prod, item.Name, item.Price, item.Quantity)
-	stmt, err := db.Prepare("insert into items(name, prod, quantity, price) values(?,?,?,?)")
+	fmt.Printf(">Adding item %s, %s, %.2f, %d, %s\n", item.Prod, item.Name, item.Price, item.Quantity, item.Color)
+	stmt, err := db.Prepare("insert into items(name, prod, quantity, price, color) values(?,?,?,?,?)")
 	if err != nil {
 		fmt.Println(err.Error())
 		fmt.Println("<add> Error preparing")
 		return -1
 	}
-	r, err := stmt.Exec(item.Name, item.Prod, item.Quantity, item.Price)
+	r, err := stmt.Exec(item.Name, item.Prod, item.Quantity, item.Price, item.Color)
 	if err != nil {
 		fmt.Println(err.Error())
 		fmt.Println("<add> Error executing")
@@ -193,13 +195,13 @@ func update(item *Item) int {
 		fmt.Printf("<upd> No item with id = %d\n", id)
 		return 404
 	}
-	stmt, err := db.Prepare("update items set name=?, prod=?, price=? where id=?")
+	stmt, err := db.Prepare("update items set name=?, prod=?, price=?, color=? where id=?")
 	if err != nil {
 		fmt.Println(err.Error())
 		fmt.Println("<upd> Error preparing")
 		return -1
 	}
-	_, err = stmt.Exec(item.Name, item.Prod, item.Price, id)
+	_, err = stmt.Exec(item.Name, item.Prod, item.Price, item.Color, id)
 	if err != nil {
 		fmt.Println(err.Error())
 		fmt.Println("<upd> Error executing")
@@ -216,7 +218,7 @@ func addUpdate(item *Item, timestamp int64) int {
 		return 404
 	}
 	
-	_, err := db.Exec("insert into changes (name, prod, price, timestamp, item) values (?, ?, ?, ?, ?)", item.Name, item.Prod, item.Price, timestamp, item.Item)
+	_, err := db.Exec("insert into changes (name, prod, price, color, timestamp, item) values (?, ?, ?, ?, ?, ?)", item.Name, item.Prod, item.Price, item.Color, timestamp, item.Item)
 	if err != nil {
 		fmt.Println(err.Error())
 		fmt.Println("<addUpd> Error executing")
@@ -351,6 +353,7 @@ func httpsync(w http.ResponseWriter, r *http.Request) {
 						item.Prod = action.Prod
 						item.Name = action.Name
 						item.Price = action.Price
+						item.Color = action.Color
 						item.Quantity = action.Quantity
 						add(item)
 					} else if action.Action == "DELETE" {
@@ -361,6 +364,7 @@ func httpsync(w http.ResponseWriter, r *http.Request) {
 						item.Name = action.Name
 						item.Prod = action.Prod
 						item.Price = action.Price
+						item.Color = action.Color
 						item.Item = action.Item
 						fmt.Printf(">Sync: updating item %d @ %d\n", item.Item, action.Timestamp)
 						addUpdate(item, action.Timestamp)
@@ -391,7 +395,7 @@ func httplist(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Access-Control-Allow-Origin", "*")
 	w.Header().Add("Content-type", "application/json")
 
-	rows, err := db.Query("select id, name, prod, price, quantity from items")
+	rows, err := db.Query("select id, name, prod, price, quantity, color from items")
 	if err != nil {
 		fmt.Println(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
@@ -405,7 +409,7 @@ func httplist(w http.ResponseWriter, r *http.Request) {
 		
 		//Get item
 		var item Item
-		err = rows.Scan(&(item.Item), &(item.Name), &(item.Prod), &(item.Price), &(item.Quantity))
+		err = rows.Scan(&(item.Item), &(item.Name), &(item.Prod), &(item.Price), &(item.Quantity), &(item.Color))
 		if err != nil {
 			fmt.Println(err.Error())
 			w.WriteHeader(http.StatusInternalServerError)

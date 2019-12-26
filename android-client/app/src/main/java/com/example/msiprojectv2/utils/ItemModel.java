@@ -23,6 +23,8 @@ public class ItemModel {
     public int quantity;
     @JsonProperty("price")
     public float price;
+    @JsonProperty
+    public String color = "";
 
     public boolean fromServer = true;
 
@@ -33,6 +35,7 @@ public class ItemModel {
         bun.putString("prod", prod);
         bun.putInt("quantity", quantity);
         bun.putFloat("price", price);
+        bun.putString("color", color);
         return bun;
     }
 

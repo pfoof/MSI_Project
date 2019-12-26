@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import com.example.msiprojectv2.local.EditItemLocallyTask
 import com.example.msiprojectv2.utils.*
@@ -30,6 +31,7 @@ class AddEditActivity : AppCompatActivity(), Request.IRequestResult {
         inputProd.setText( bun.getString("prod") ?: "htc")
         inputPrice.setText( ""+bun.getFloat("price", 19.99f) )
         itemID.setText( "ID: " + ( if(id>0) id else "<new item>") )
+        inputColor.adapter = ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, resources.getStringArray(R.array.colors))
         unshowBusy()
 
         cancel.setOnClickListener{ setResult(Constants.ACTIVITY_RESULT_CANCEL); this.finish() }
@@ -96,6 +98,7 @@ class AddEditActivity : AppCompatActivity(), Request.IRequestResult {
         im.name = inputName.text.toString()
         im.prod = inputProd.text.toString()
         im.price = inputPrice.text.toString().toFloat()
+        im.color = inputColor.selectedItem.toString()
         if(id <= 0) {
             im.quantity = inputQuantity.text.toString().toInt()
         } else {
@@ -112,6 +115,7 @@ class AddEditActivity : AppCompatActivity(), Request.IRequestResult {
         im.name = inputName.text.toString()
         im.prod = inputProd.text.toString()
         im.price = inputPrice.text.toString().toFloat()
+        im.color = inputColor.selectedItem.toString()
         if(id <= 0) {
             im.quantity = inputQuantity.text.toString().toInt()
             method = "POST"

@@ -48,6 +48,7 @@ public class ItemsAdapter extends ArrayAdapter<ItemModel> {
         TextView text_prod = (TextView) l.findViewById(R.id.text_prod);
         TextView text_price = (TextView) l.findViewById(R.id.text_price);
         TextView text_quantity = (TextView) l.findViewById(R.id.text_quantity);
+        TextView text_color = (TextView) l.findViewById(R.id.text_color);
 
         ImageButton btnEdit = (ImageButton) l.findViewById(R.id.btnEdit);
         ImageButton btnDelete = (ImageButton) l.findViewById(R.id.btnDelete);
@@ -69,6 +70,9 @@ public class ItemsAdapter extends ArrayAdapter<ItemModel> {
         if(text_quantity != null)
             text_quantity.setText(String.format("Quantity: %s", o.quantity));
             //text_quantity.setText(String.format("Quantity: %d", o.quantity));
+
+        if(text_color != null)
+            text_color.setText("Color: "+o.color);
 
         if(btnEdit != null) {
             btnEdit.setEnabled(action != null && action.canEdit());
