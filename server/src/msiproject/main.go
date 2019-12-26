@@ -135,7 +135,7 @@ func add(item *Item) int {
 		fmt.Println("<add> Last insert error")
 		return int(lastid)
 	}
-	fmt.Printf(">Added item at #%d", lastid)
+	fmt.Printf(">Added item at #%d\n", lastid)
 	return int(lastid)
 }
 
@@ -260,8 +260,19 @@ func hassyncuuid(uuid string) bool {
 		fmt.Println("<hasuuid> Error query")
 		return false
 	}
+	fmt.Printf("<hasuuid> UUID count = %d\n", count)
 
 	return count > 0
+}
+
+func putsyncuuid(uuid string) bool {
+		_, err := db.Exec("insert into syncs (uuid) values (?)", uuid)
+		if err != nil {
+			fmt.Printf(err.Error())
+			fmt.Println("<psu> Error inserting")
+			return false
+		}
+		return true
 }
 
 func canuser(action string, level int) bool {
@@ -325,7 +336,7 @@ func httpsync(w http.ResponseWriter, r *http.Request) {
 			if hassyncuuid(syncpack.Uuid) {
 				fmt.Printf("Sync: uuid already in database!\n")
 				w.WriteHeader(http.StatusOK)
-				w.Write([]byte(fmt.Sprintf("{}")))
+				w.Write([]byte(fmt.Sprintf("{\"error\":\"Already synced with this uuid!\"}")))
 				return
 			}
 			
@@ -358,7 +369,13 @@ func httpsync(w http.ResponseWriter, r *http.Request) {
 						quantity(action.Item, action.Quantity)
 					}
 				}
-			} 
+			}
+			
+			if !putsyncuuid(syncpack.Uuid) {
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(fmt.Sprintf("{\"error\":\"Error saving uuid of this sync\"}")))
+				return
+			}
 			
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(fmt.Sprintf("{}")))
