@@ -9,6 +9,7 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import com.example.msiprojectv2.local.*
+import com.example.msiprojectv2.sets.SetsActivity
 import com.example.msiprojectv2.utils.*
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -49,6 +50,10 @@ class MainActivity : AppCompatActivity(), IStockItemAction, Request.IRequestResu
             if(isOffline)
                 intent.putExtra("offline", isOffline)
             startActivityForResult(intent, Constants.ACTIVITY_REQUEST_ADDEDIT)
+        }
+
+        setsBtn.setOnClickListener {
+            startActivity( Intent(this, SetsActivity::class.java) )
         }
 
         userStatus.text = Tokens.getToken(this).substring(0,8) + " - level " + getUserLevel()

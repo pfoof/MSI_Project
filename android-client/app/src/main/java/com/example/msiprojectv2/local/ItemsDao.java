@@ -35,4 +35,10 @@ interface ItemsDao {
     @Query("DELETE FROM items WHERE id = :id")
     void delete(int id);
 
+    @Query("SELECT * FROM items WHERE id = :id")
+    ItemModel getNameAndProd(int id);
+
+    @Query("SELECT price FROM items WHERE id = :id")
+    float getPrice(int id);
+
 }

@@ -117,7 +117,12 @@ public class Request extends AsyncTask<Object, Integer, Object> {
         Delete,
         Quantity,
         Authorize,
-        Synchronize
+        Synchronize,
+        FetchSet,
+        AddSet,
+        EditSet,
+        DeleteSet,
+        QuantitySet
     }
 
 }

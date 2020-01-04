@@ -46,6 +46,36 @@ type Quantity struct {
 	Delta int `json:"change"`
 }
 
+type CollectionAdd struct {
+	Quantity	int	`json:"quantity"`
+}
+
+type CollectionCreate struct {
+	Name	string	`json:"name"`
+}
+
+type CollectionRemove struct {
+	Collection	int	`json:"collection"`
+	Item		int	`json:"item"`
+}
+
+type Collection struct {
+	Id		int		`json:"id"`
+	Name	string	`json:"name"`
+}
+
+type CollectionConnection struct {
+	Id			int		`json:"id"`
+	Set			int		`json:"set"`
+	Item		int		`json:"item"`
+	Quantity	int		`json:"quantity"`
+}
+
+type GetCollectionsResponse struct {
+	Collections []Collection	`json:"models"`
+	Connections	[]CollectionConnection 	`json:"setitems"`	
+}
+
 type Action struct {
 	Item		int			`json:"item"`
 	Name		string		`json:"name"`
@@ -275,6 +305,124 @@ func putsyncuuid(uuid string) bool {
 			return false
 		}
 		return true
+}
+
+func addtocollection(collection int, item int, quantity int) {
+	stmt, err := db.Prepare("select count(*) from collectionsconnections where (collection = ? and item = ?)")
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("<atc> Cannot get count of collection")
+		return
+	}
+	count := 0
+	err = stmt.QueryRow(collection, item).Scan(&count)
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("<atc> Cannot get count of collection")
+		return
+	}
+	if count > 0 {
+		_, err = db.Exec("update collectionsconnections SET quantity = ? where (collection = ? and item = ?)", quantity, collection, item)
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("<atc> Cannot update existing collection connection")
+			return
+		}
+	} else {
+		_, err = db.Exec("insert into collectionsconnections(collection, item, quantity) values (?, ?, ?)", collection, item, quantity)
+		if err != nil {
+			fmt.Println(err.Error())
+			fmt.Println("<atc> Error adding to collection")
+			return
+		}
+	}
+}
+
+func removefromcollection(collection int, item int) {
+	_, err := db.Exec("delete from collectionsconnections WHERE (collection = ? and item = ?)", collection, item)
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("<rfc> Cannot remove from collection")
+		return
+	}
+}
+
+func createcollection(name string) int {
+	fmt.Printf(">Creating collection %s\n", name)
+	stmt, err := db.Prepare("insert into collections(name) values(?)")
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("<ccl> Error preparing")
+		return -1
+	}
+	r, err := stmt.Exec(name)
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("<ccl> Error executing")
+		return -1
+	}
+	lastid, err := r.LastInsertId()
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("<ccl> Last insert error")
+		return int(lastid)
+	}
+	fmt.Printf(">Created collection %s at #%d\n", name, lastid)
+	return int(lastid)
+}
+
+func deletecollection(collection int) {
+	fmt.Printf(">Deleting collection %d\n", collection)
+	_, err := db.Exec("delete from collectionsconnections WHERE collection = ?", collection)
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("Cannot delete collection connections")
+		return
+	}
+	
+	_, err = db.Exec("delete from collections WHERE id = ?", collection)
+	if err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("Cannot delete collection")
+		return
+	}
+}
+
+func getcollections() ([]Collection, []CollectionConnection, error){
+	fmt.Printf(">Getting collections\n")
+	rows, err := db.Query("SELECT id, name FROM collections")
+	
+	collections := []Collection{}
+
+	for rows.Next() {
+		
+		//Get item
+		var coll Collection
+		err = rows.Scan(&(coll.Id), &(coll.Name))
+		if err != nil {
+			return nil, nil, err
+		}
+		
+		collections = append(collections, coll)
+	
+	}
+	
+	collconns := []CollectionConnection{}
+	
+	rows, err = db.Query("SELECT id, collection, item, quantity FROM collectionsconnections")
+	
+	for rows.Next() {
+		var collconn CollectionConnection
+		err = rows.Scan(&(collconn.Id), &(collconn.Set), &(collconn.Item), &(collconn.Quantity))
+		if err != nil {
+			return nil, nil, err
+		}
+		
+		collconns = append(collconns, collconn)
+	}
+	
+	return collections, collconns, nil
+	
 }
 
 func canuser(action string, level int) bool {
@@ -659,11 +807,205 @@ func main() {
 	rtr.HandleFunc("/", listItems)
 	rtr.HandleFunc("/authorize", httpauth)
 	rtr.HandleFunc("/sync", httpsync)
+	rtr.HandleFunc("/collection/{id}/{item}", httpcoll)
+	rtr.HandleFunc("/collection/{id}", httpcoll)
+	rtr.HandleFunc("/collection", httpcoll)
 	rtr.HandleFunc("/callback/{prov}", callback)
 	rtr.HandleFunc("/login/{prov}", login)
 	rtr.HandleFunc("/{itemid}", item)
 
 	http.ListenAndServeTLS(":8000", "server.crt", "server.key", nil)
+}
+
+func httpcoll(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	var id string = ""
+	var item string = ""
+	
+	if _, hasid := vars["id"]; hasid {
+		id = vars["id"]
+	}
+	
+	if _, hasitem := vars["item"]; hasitem {
+		item = vars["item"]
+	}
+	
+	_ = id
+	_ = item
+	
+	w.Header().Add("Access-Control-Allow-Origin", "*")
+	
+	switch r.Method {
+		case "OPTIONS":
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Headers", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "*")
+		break
+		
+		case "POST":
+		if id != "" {
+			iid, err := strconv.Atoi(id)
+			
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				fmt.Println(err.Error())
+				fmt.Println("id is not a number!")
+				return
+			}
+			
+			if item != "" {
+				iitem, err := strconv.Atoi(item)
+			
+				if err != nil {
+					w.WriteHeader(http.StatusBadRequest)
+					fmt.Println(err.Error())
+					fmt.Println("item is not a number!")
+					return
+				}
+				
+				body, err := ioutil.ReadAll(r.Body)
+				if err != nil {
+					w.WriteHeader(http.StatusBadRequest)
+					fmt.Println("Bad request")
+					return
+				}
+				
+				var colladd *CollectionAdd = new(CollectionAdd)
+				err = json.NewDecoder(bytes.NewReader(body)).Decode(colladd)
+				if err != nil {
+					w.WriteHeader(http.StatusBadRequest)
+					fmt.Println("Bad request (json)")
+					return
+				}
+				
+				addtocollection(iid, iitem, colladd.Quantity)
+			} else {
+				w.WriteHeader(http.StatusBadRequest)
+			}
+			
+		} else {
+			body, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				fmt.Println("Bad request")
+				return
+			}
+			
+			var collcr *CollectionCreate = new(CollectionCreate)
+			err = json.NewDecoder(bytes.NewReader(body)).Decode(collcr)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				fmt.Println("Bad request (json)")
+				return
+			}
+			
+			createcollection(collcr.Name)
+			w.WriteHeader(http.StatusOK)
+		}
+		break
+		
+		case "PUT":
+		if id != "" {
+			iid, err := strconv.Atoi(id)
+			
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				fmt.Println(err.Error())
+				fmt.Println("id is not a number!")
+				return
+			}
+			
+			if item != "" {
+				iitem, err := strconv.Atoi(item)
+			
+				if err != nil {
+					w.WriteHeader(http.StatusBadRequest)
+					fmt.Println(err.Error())
+					fmt.Println("item is not a number!")
+					return
+				}
+				
+				body, err := ioutil.ReadAll(r.Body)
+				if err != nil {
+					w.WriteHeader(http.StatusBadRequest)
+					fmt.Println("Bad request")
+					return
+				}
+				
+				var colladd *CollectionAdd  = new(CollectionAdd)
+				err = json.NewDecoder(bytes.NewReader(body)).Decode(colladd)
+				if err != nil {
+					w.WriteHeader(http.StatusBadRequest)
+					fmt.Println("Bad request (json)")
+					return
+				}
+				
+				addtocollection(iid, iitem, colladd.Quantity)
+			} else {
+				w.WriteHeader(http.StatusBadRequest)
+			}
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+		}
+		break
+		
+		case "DELETE":
+		if id != "" {
+			iid, err := strconv.Atoi(id)
+			
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				fmt.Println(err.Error())
+				fmt.Println("id is not a number!")
+				return
+			}
+			
+			if item != "" {
+				iitem, err := strconv.Atoi(item)
+			
+				if err != nil {
+					w.WriteHeader(http.StatusBadRequest)
+					fmt.Println(err.Error())
+					fmt.Println("item is not a number!")
+					return
+				}
+			
+				removefromcollection(iid, iitem)
+				w.WriteHeader(http.StatusOK)
+			} else {
+				deletecollection(iid)
+				w.WriteHeader(http.StatusOK)
+			}
+		} else {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		}
+		break
+	
+        case "GET":
+        colls, collconns, err := getcollections()
+        if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		
+		var resp *GetCollectionsResponse = new(GetCollectionsResponse)
+		resp.Collections = colls
+		resp.Connections = collconns
+		respjson, err := json.Marshal(resp)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			fmt.Println("Bad request (json)")
+			return
+		}
+		
+		w.WriteHeader(http.StatusOK)
+		w.Write(respjson)
+		
+        break
+        
+    }
+	
 }
 
 func login(w http.ResponseWriter, r *http.Request) {

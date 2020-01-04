@@ -79,6 +79,15 @@
         android:src="@drawable/add_small"
         android:id="@+id/addBtn" />
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/setsBtn"
+        android:src="@android:drawable/btn_dropdown"
+        android:layout_gravity="bottom|center"
+        android:layout_margin="32dp"
+        />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
